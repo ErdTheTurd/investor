@@ -121,12 +121,22 @@ export async function getQuote(symbol: string): Promise<Quote> {
 }
 
 export async function getQuotes(symbols: string[] = UNIVERSE.map((u) => u.symbol)): Promise<Quote[]> {
+  const concurrency = 4
   const results: Quote[] = []
-  for (const symbol of symbols) {
-    try {
-      results.push(await getQuote(symbol))
-    } catch {
-      /* skip */
+  for (let i = 0; i < symbols.length; i += concurrency) {
+    const batch = symbols.slice(i, i + concurrency)
+    const settled = await Promise.allSettled(
+      batch.map((symbol) =>
+        Promise.race([
+          getQuote(symbol),
+          new Promise<Quote>((_, reject) => {
+            window.setTimeout(() => reject(new Error(`timeout ${symbol}`)), 4500)
+          }),
+        ]),
+      ),
+    )
+    for (const item of settled) {
+      if (item.status === 'fulfilled') results.push(item.value)
     }
   }
   return results

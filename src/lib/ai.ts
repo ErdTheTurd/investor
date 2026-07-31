@@ -60,7 +60,28 @@ function extractText(result: unknown): string {
   return String(result ?? '')
 }
 
+function loadPuterScript(): Promise<void> {
+  if (window.puter?.ai?.chat) return Promise.resolve()
+  const existing = document.querySelector<HTMLScriptElement>('script[data-dunn-puter]')
+  if (existing) {
+    return new Promise((resolve, reject) => {
+      existing.addEventListener('load', () => resolve(), { once: true })
+      existing.addEventListener('error', () => reject(new Error('Puter script failed')), { once: true })
+    })
+  }
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script')
+    script.src = 'https://js.puter.com/v2/'
+    script.async = true
+    script.dataset.dunnPuter = '1'
+    script.onload = () => resolve()
+    script.onerror = () => reject(new Error('Puter script failed'))
+    document.head.appendChild(script)
+  })
+}
+
 async function callPuter(messages: { role: string; content: string }[]): Promise<string> {
+  await loadPuterScript()
   if (!window.puter?.ai?.chat) throw new Error('Puter unavailable')
   const models = ['openai/gpt-5.4-nano', 'gpt-4.1-mini', 'gpt-5-nano']
   let lastError: unknown

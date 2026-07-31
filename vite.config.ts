@@ -126,4 +126,20 @@ function aiProxyPlugin(): Plugin {
 
 export default defineConfig({
   plugins: [react(), yahooProxyPlugin(), aiProxyPlugin()],
+  build: {
+    modulePreload: {
+      resolveDependencies: (_filename, deps) =>
+        // Avoid preloading the multi‑MB WebLLM chunk on first visit.
+        deps.filter((dep) => !dep.includes('web-llm') && !dep.includes('lib-')),
+    },
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('@mlc-ai/web-llm')) return 'webllm'
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) return 'react'
+          if (id.includes('react-router')) return 'router'
+        },
+      },
+    },
+  },
 })

@@ -65,11 +65,8 @@ export async function buildFactorSnapshot(symbol: string, benchmarkBars?: Awaite
 
 export async function buildUniverseFactors(): Promise<FactorSnapshot[]> {
   const spy = await getBars('SPY')
-  const out: FactorSnapshot[] = []
-  for (const u of UNIVERSE) {
-    out.push(await buildFactorSnapshot(u.symbol, spy))
-  }
-  return out
+  const settled = await Promise.allSettled(UNIVERSE.map((u) => buildFactorSnapshot(u.symbol, spy)))
+  return settled.filter((r): r is PromiseFulfilledResult<FactorSnapshot> => r.status === 'fulfilled').map((r) => r.value)
 }
 
 export function scoreForRisk(f: FactorSnapshot, risk: RiskProfile): number {

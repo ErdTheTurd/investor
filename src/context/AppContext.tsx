@@ -8,7 +8,6 @@ import {
   type ReactNode,
 } from 'react'
 import type { AiDecision, AiMessage, AppState, FactorSnapshot, Goal, RiskProfile } from '../types'
-import { askDunnAi, runAutonomousInvest } from '../lib/ai'
 import { buildUniverseFactors } from '../lib/factors'
 import { getQuotes } from '../lib/market'
 import {
@@ -56,8 +55,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(() => touchStreak(loadState()))
   const [prices, setPrices] = useState<Record<string, number>>({})
   const [factors, setFactors] = useState<FactorSnapshot[]>([])
-  const [loadingMarket, setLoadingMarket] = useState(true)
+  const [loadingMarket, setLoadingMarket] = useState(false)
   const [aiBusy, setAiBusy] = useState(false)
+  const [marketReady, setMarketReady] = useState(false)
 
   useEffect(() => {
     saveState(state)
@@ -73,15 +73,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const f = await buildUniverseFactors()
       setFactors(f)
       setState((s) => recordEquityPoint(s, totalEquity(s, map)))
+      setMarketReady(true)
     } finally {
       setLoadingMarket(false)
     }
   }, [])
 
+  // Defer market work until the first paint — landing stays instant.
   useEffect(() => {
-    void refreshMarket()
-    const id = window.setInterval(() => void refreshMarket(), 5 * 60_000)
-    return () => window.clearInterval(id)
+    let cancelled = false
+    let intervalId = 0
+    let timeoutId = 0
+    const start = () => {
+      if (cancelled) return
+      void refreshMarket()
+      intervalId = window.setInterval(() => void refreshMarket(), 5 * 60_000)
+    }
+    timeoutId = window.setTimeout(start, 250)
+    return () => {
+      cancelled = true
+      window.clearTimeout(timeoutId)
+      window.clearInterval(intervalId)
+    }
   }, [refreshMarket])
 
   const equity = useMemo(() => totalEquity(state, prices), [state, prices])
@@ -103,6 +116,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (data.initialDeposit > 0) next = deposit(next, data.initialDeposit, 'Opening deposit')
       return next
     })
+    if (!marketReady) void refreshMarket()
   }
 
   const makeDeposit = (amount: number) => setState((s) => deposit(s, amount))
@@ -154,6 +168,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, aiMessages: [...s.aiMessages, userMsg] }))
     setAiBusy(true)
     try {
+      const { askDunnAi } = await import('../lib/ai')
       const history = state.aiMessages
         .filter((m) => m.role === 'user' || m.role === 'assistant')
         .map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content }))
@@ -221,6 +236,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!state.agent.enabled) return
     setAiBusy(true)
     try {
+      const { runAutonomousInvest } = await import('../lib/ai')
       const remaining = Math.max(0, state.agent.dailyAllowance - state.agent.spentToday)
       const { reply, decision } = await runAutonomousInvest({
         state,
