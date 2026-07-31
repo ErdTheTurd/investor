@@ -17,7 +17,19 @@ npm install
 npm run dev
 ```
 
-Market quotes are proxied through Vite to Yahoo Finance (`/api/yahoo`). If feeds throttle, the app falls back to deterministic synthetic bars so the UI keeps working.
+## Deploy to GitHub Pages
+
+Pages serves the repo root on `main`. Publish a production build into the root (with `/investor/` base paths):
+
+```bash
+npm run build:pages
+```
+
+That writes `index.html`, `404.html`, `favicon.svg`, and `assets/` for https://erdtheturd.github.io/investor/
+
+Keep editing `index.source.html` (Vite entry). `npm run dev` / `npm run build` restore it automatically.
+
+Market quotes are proxied through Vite to Yahoo Finance in local/dev. On GitHub Pages, the app uses a CORS-friendly fallback, then synthetic bars if feeds fail.
 
 ## AI without a paid developer key
 

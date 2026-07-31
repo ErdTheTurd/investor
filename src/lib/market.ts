@@ -13,31 +13,47 @@ const cache = new Map<string, { at: number; bars: ChartBar[]; quote: Quote }>()
 const TTL = 60_000
 
 async function fetchYahooChart(symbol: string, range = '3mo'): Promise<ChartBar[]> {
-  const url = `/api/yahoo/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=${range}`
-  const res = await fetch(url)
-  if (!res.ok) throw new Error(`Yahoo ${symbol} ${res.status}`)
-  const data = await res.json()
-  const result = data?.chart?.result?.[0]
-  if (!result) throw new Error('Empty chart')
-  const timestamps: number[] = result.timestamp ?? []
-  const quote = result.indicators?.quote?.[0]
-  const closes: (number | null)[] = quote?.close ?? []
-  const highs: (number | null)[] = quote?.high ?? []
-  const lows: (number | null)[] = quote?.low ?? []
-  const volumes: (number | null)[] = quote?.volume ?? []
-  const bars: ChartBar[] = []
-  for (let i = 0; i < timestamps.length; i++) {
-    const close = closes[i]
-    if (close == null) continue
-    bars.push({
-      close,
-      high: highs[i] ?? close,
-      low: lows[i] ?? close,
-      volume: volumes[i] ?? 0,
-      date: new Date(timestamps[i] * 1000).toISOString().slice(0, 10),
-    })
+  const yahooPath = `/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=${range}`
+  const candidates = [
+    `/api/yahoo${yahooPath}`,
+    `https://corsproxy.io/?${encodeURIComponent(`https://query2.finance.yahoo.com${yahooPath}`)}`,
+  ]
+
+  let lastError: unknown
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url, {
+        headers: { Accept: 'application/json' },
+      })
+      if (!res.ok) throw new Error(`Yahoo ${symbol} ${res.status}`)
+      const data = await res.json()
+      const result = data?.chart?.result?.[0]
+      if (!result) throw new Error('Empty chart')
+      const timestamps: number[] = result.timestamp ?? []
+      const quote = result.indicators?.quote?.[0]
+      const closes: (number | null)[] = quote?.close ?? []
+      const highs: (number | null)[] = quote?.high ?? []
+      const lows: (number | null)[] = quote?.low ?? []
+      const volumes: (number | null)[] = quote?.volume ?? []
+      const bars: ChartBar[] = []
+      for (let i = 0; i < timestamps.length; i++) {
+        const close = closes[i]
+        if (close == null) continue
+        bars.push({
+          close,
+          high: highs[i] ?? close,
+          low: lows[i] ?? close,
+          volume: volumes[i] ?? 0,
+          date: new Date(timestamps[i] * 1000).toISOString().slice(0, 10),
+        })
+      }
+      if (bars.length < 5) throw new Error('too few bars')
+      return bars
+    } catch (err) {
+      lastError = err
+    }
   }
-  return bars
+  throw lastError instanceof Error ? lastError : new Error('Yahoo fetch failed')
 }
 
 /** Seeded fallback so the app still works if market APIs throttle. */

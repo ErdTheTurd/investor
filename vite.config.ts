@@ -1,6 +1,9 @@
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 
+/** GitHub Pages serves this repo at https://erdtheturd.github.io/investor/ */
+const BASE = '/investor/'
+
 function yahooProxyPlugin(): Plugin {
   const handler = async (req: { url?: string; method?: string }, res: {
     statusCode: number
@@ -81,8 +84,6 @@ function aiProxyPlugin(): Plugin {
               headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json',
-                // Empty Authorization forces anonymous tier on shared egress IPs
-                // that Pollinations otherwise associates with a depleted key.
                 Authorization: '',
                 'User-Agent': 'DunnInvesting/1.0',
               },
@@ -125,12 +126,12 @@ function aiProxyPlugin(): Plugin {
 }
 
 export default defineConfig({
+  base: BASE,
   plugins: [react(), yahooProxyPlugin(), aiProxyPlugin()],
   build: {
     modulePreload: {
       resolveDependencies: (_filename, deps) =>
-        // Avoid preloading the multi‑MB WebLLM chunk on first visit.
-        deps.filter((dep) => !dep.includes('web-llm') && !dep.includes('lib-')),
+        deps.filter((dep) => !dep.includes('web-llm') && !dep.includes('webllm')),
     },
     rollupOptions: {
       output: {
