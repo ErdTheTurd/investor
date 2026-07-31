@@ -2,8 +2,9 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { formatMoney, formatPct } from '../lib/storage'
+import { CompareChart, MiniSpark, PriceChart } from '../components/PriceChart'
 
-function Sparkline({ points }: { points: number[] }) {
+function EquityArea({ points }: { points: number[] }) {
   if (points.length < 2) {
     return <svg className="spark" viewBox="0 0 300 120" role="img" aria-label="Equity chart placeholder" />
   }
@@ -68,7 +69,7 @@ export function Dashboard() {
             {formatPct(dayChange)} vs prior snapshot
             {loadingMarket ? ' · refreshing markets…' : ''}
           </div>
-          <Sparkline points={state.equityHistory.map((h) => h.value)} />
+          <EquityArea points={state.equityHistory.map((h) => h.value)} />
           <div className="quick-actions">
             <div className="field" style={{ minWidth: 120 }}>
               <label htmlFor="dep">Deposit</label>
@@ -86,8 +87,8 @@ export function Dashboard() {
             <button className="btn btn-ghost" type="button" onClick={() => void refreshMarket()} style={{ alignSelf: 'end' }}>
               Refresh prices
             </button>
-            <Link className="btn btn-champagne" to="/app/agent" style={{ alignSelf: 'end' }}>
-              Talk to Dunn AI
+            <Link className="btn btn-champagne" to="/app/markets" style={{ alignSelf: 'end' }}>
+              View markets
             </Link>
           </div>
           <p className="muted" style={{ marginTop: '1rem', fontSize: '0.85rem' }}>
@@ -99,7 +100,7 @@ export function Dashboard() {
         <section className="panel balance-block stack">
           <div>
             <h2 style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>Holdings</h2>
-            <p className="muted">Live marks from free market feeds.</p>
+            <p className="muted">Live marks with mini trend lines.</p>
           </div>
           <div className="list">
             {holdingsPreview.length === 0 && <p className="muted">No positions yet — deposit, then let AI invest.</p>}
@@ -112,6 +113,7 @@ export function Dashboard() {
                     <strong>{h.symbol}</strong>
                     <div className="muted">{h.name}</div>
                   </div>
+                  <MiniSpark symbol={h.symbol} />
                   <div style={{ textAlign: 'right' }}>
                     <div>{formatMoney(h.shares * px)}</div>
                     <div className={pnl >= 0 ? 'gain' : 'loss'}>{formatPct(pnl)}</div>
@@ -126,7 +128,24 @@ export function Dashboard() {
         </section>
       </div>
 
-      <section className="panel balance-block">
+      <section className="panel balance-block" style={{ marginTop: '1rem' }}>
+        <div className="price-chart-head" style={{ marginBottom: '0.5rem' }}>
+          <div>
+            <h2 style={{ fontSize: '1.2rem' }}>Market pulse · SPY</h2>
+            <p className="muted">Scrub the line to see exact prices — same interaction pattern as the Markets desk.</p>
+          </div>
+          <Link to="/app/markets" className="btn btn-ghost">
+            Stocks & bonds
+          </Link>
+        </div>
+        <PriceChart symbol="SPY" name="S&P 500" showHeader={false} height={220} defaultRange="3mo" />
+      </section>
+
+      <section className="panel balance-block" style={{ marginTop: '1rem' }}>
+        <CompareChart height={240} />
+      </section>
+
+      <section className="panel balance-block" style={{ marginTop: '1rem' }}>
         <h2 style={{ fontSize: '1.2rem', marginBottom: '0.75rem' }}>Recent activity</h2>
         <div className="list">
           {state.transactions.slice(0, 6).map((t) => (

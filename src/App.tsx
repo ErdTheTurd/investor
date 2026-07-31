@@ -7,6 +7,7 @@ const Onboarding = lazy(() => import('./pages/Onboarding').then((m) => ({ defaul
 const AppLayout = lazy(() => import('./components/AppLayout').then((m) => ({ default: m.AppLayout })))
 const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })))
 const Invest = lazy(() => import('./pages/Invest').then((m) => ({ default: m.Invest })))
+const Markets = lazy(() => import('./pages/Markets').then((m) => ({ default: m.Markets })))
 const Agent = lazy(() => import('./pages/Agent').then((m) => ({ default: m.Agent })))
 const Goals = lazy(() => import('./pages/Goals').then((m) => ({ default: m.Goals })))
 const Learn = lazy(() => import('./pages/Learn').then((m) => ({ default: m.Learn })))
@@ -44,6 +45,7 @@ export default function App() {
             >
               <Route index element={<Dashboard />} />
               <Route path="invest" element={<Invest />} />
+              <Route path="markets" element={<Markets />} />
               <Route path="agent" element={<Agent />} />
               <Route path="goals" element={<Goals />} />
               <Route path="learn" element={<Learn />} />
