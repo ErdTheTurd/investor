@@ -1,7 +1,7 @@
 import type { Quote } from '../types'
 import { UNIVERSE } from '../types'
 
-interface ChartBar {
+export interface ChartBar {
   close: number
   high: number
   low: number
@@ -9,11 +9,30 @@ interface ChartBar {
   date: string
 }
 
+export type ChartRange = '5d' | '1mo' | '3mo' | '6mo' | '1y' | '2y'
+
+export const CHART_RANGES: { id: ChartRange; label: string }[] = [
+  { id: '5d', label: '1W' },
+  { id: '1mo', label: '1M' },
+  { id: '3mo', label: '3M' },
+  { id: '6mo', label: '6M' },
+  { id: '1y', label: '1Y' },
+  { id: '2y', label: '2Y' },
+]
+
 const cache = new Map<string, { at: number; bars: ChartBar[]; quote: Quote }>()
 const TTL = 60_000
 
-async function fetchYahooChart(symbol: string, range = '3mo'): Promise<ChartBar[]> {
-  const yahooPath = `/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=${range}`
+function cacheKey(symbol: string, range: ChartRange) {
+  return `${symbol}:${range}`
+}
+
+function intervalForRange(range: ChartRange) {
+  return range === '5d' ? '1d' : '1d'
+}
+
+async function fetchYahooChart(symbol: string, range: ChartRange = '3mo'): Promise<ChartBar[]> {
+  const yahooPath = `/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${intervalForRange(range)}&range=${range}`
   const candidates = [
     `/api/yahoo${yahooPath}`,
     `https://corsproxy.io/?${encodeURIComponent(`https://query2.finance.yahoo.com${yahooPath}`)}`,
@@ -47,7 +66,7 @@ async function fetchYahooChart(symbol: string, range = '3mo'): Promise<ChartBar[
           date: new Date(timestamps[i] * 1000).toISOString().slice(0, 10),
         })
       }
-      if (bars.length < 5) throw new Error('too few bars')
+      if (bars.length < 3) throw new Error('too few bars')
       return bars
     } catch (err) {
       lastError = err
@@ -56,8 +75,26 @@ async function fetchYahooChart(symbol: string, range = '3mo'): Promise<ChartBar[
   throw lastError instanceof Error ? lastError : new Error('Yahoo fetch failed')
 }
 
+function daysForRange(range: ChartRange) {
+  switch (range) {
+    case '5d':
+      return 7
+    case '1mo':
+      return 22
+    case '3mo':
+      return 66
+    case '6mo':
+      return 132
+    case '1y':
+      return 252
+    case '2y':
+      return 504
+  }
+}
+
 /** Seeded fallback so the app still works if market APIs throttle. */
-function syntheticBars(symbol: string, days = 66): ChartBar[] {
+function syntheticBars(symbol: string, range: ChartRange = '3mo'): ChartBar[] {
+  const days = daysForRange(range)
   let hash = 0
   for (const c of symbol) hash = (hash * 31 + c.charCodeAt(0)) >>> 0
   const baseMap: Record<string, number> = {
@@ -92,48 +129,43 @@ function syntheticBars(symbol: string, days = 66): ChartBar[] {
   return bars
 }
 
-export async function getBars(symbol: string): Promise<ChartBar[]> {
-  const hit = cache.get(symbol)
+function quoteFromBars(symbol: string, bars: ChartBar[]): Quote {
+  const last = bars[bars.length - 1]
+  const prev = bars[bars.length - 2] ?? last
+  return {
+    symbol,
+    price: last.close,
+    previousClose: prev.close,
+    changePercent: ((last.close - prev.close) / prev.close) * 100,
+    high52: Math.max(...bars.map((b) => b.high)),
+    low52: Math.min(...bars.map((b) => b.low)),
+    volume: last.volume,
+  }
+}
+
+export async function getBars(symbol: string, range: ChartRange = '3mo'): Promise<ChartBar[]> {
+  const key = cacheKey(symbol, range)
+  const hit = cache.get(key)
   if (hit && Date.now() - hit.at < TTL) return hit.bars
   try {
-    const bars = await fetchYahooChart(symbol)
-    if (bars.length < 5) throw new Error('too few bars')
-    const last = bars[bars.length - 1]
-    const prev = bars[bars.length - 2] ?? last
-    const highs = bars.map((b) => b.high)
-    const lows = bars.map((b) => b.low)
-    const quote: Quote = {
-      symbol,
-      price: last.close,
-      previousClose: prev.close,
-      changePercent: ((last.close - prev.close) / prev.close) * 100,
-      high52: Math.max(...highs),
-      low52: Math.min(...lows),
-      volume: last.volume,
+    const bars = await fetchYahooChart(symbol, range)
+    cache.set(key, { at: Date.now(), bars, quote: quoteFromBars(symbol, bars) })
+    // Also refresh default quote cache used by portfolio marks
+    const defKey = cacheKey(symbol, '3mo')
+    if (range === '3mo' || !cache.has(defKey)) {
+      cache.set(defKey, { at: Date.now(), bars, quote: quoteFromBars(symbol, bars) })
     }
-    cache.set(symbol, { at: Date.now(), bars, quote })
     return bars
   } catch {
-    const bars = syntheticBars(symbol)
-    const last = bars[bars.length - 1]
-    const prev = bars[bars.length - 2]
-    const quote: Quote = {
-      symbol,
-      price: last.close,
-      previousClose: prev.close,
-      changePercent: ((last.close - prev.close) / prev.close) * 100,
-      high52: Math.max(...bars.map((b) => b.high)),
-      low52: Math.min(...bars.map((b) => b.low)),
-      volume: last.volume,
-    }
-    cache.set(symbol, { at: Date.now(), bars, quote })
+    const bars = syntheticBars(symbol, range)
+    cache.set(key, { at: Date.now(), bars, quote: quoteFromBars(symbol, bars) })
     return bars
   }
 }
 
 export async function getQuote(symbol: string): Promise<Quote> {
-  await getBars(symbol)
-  return cache.get(symbol)!.quote
+  await getBars(symbol, '3mo')
+  return cache.get(cacheKey(symbol, '3mo'))!.quote
 }
 
 export async function getQuotes(symbols: string[] = UNIVERSE.map((u) => u.symbol)): Promise<Quote[]> {
@@ -165,6 +197,13 @@ export function pctChange(bars: ChartBar[], lookback: number): number {
   return ((a - b) / b) * 100
 }
 
+export function rangeReturn(bars: ChartBar[]): number {
+  if (bars.length < 2) return 0
+  const a = bars[bars.length - 1].close
+  const b = bars[0].close
+  return ((a - b) / b) * 100
+}
+
 export function realizedVol(bars: ChartBar[], window = 21): number {
   const slice = bars.slice(-window - 1)
   if (slice.length < 5) return 0
@@ -177,4 +216,9 @@ export function realizedVol(bars: ChartBar[], window = 21): number {
   return Math.sqrt(variance) * Math.sqrt(252) * 100
 }
 
-export type { ChartBar }
+/** Normalize multiple series to 100 at start for comparison charts. */
+export function normalizeSeries(bars: ChartBar[]): { date: string; value: number }[] {
+  if (!bars.length) return []
+  const base = bars[0].close || 1
+  return bars.map((b) => ({ date: b.date, value: (b.close / base) * 100 }))
+}

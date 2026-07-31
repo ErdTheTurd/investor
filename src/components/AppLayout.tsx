@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext'
 const links = [
   { to: '/app', label: 'Home', end: true },
   { to: '/app/invest', label: 'Invest' },
+  { to: '/app/markets', label: 'Markets' },
   { to: '/app/agent', label: 'AI Agent' },
   { to: '/app/goals', label: 'Goals' },
   { to: '/app/learn', label: 'Learn' },

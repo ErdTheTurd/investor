@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useApp } from '../context/AppContext'
 import { UNIVERSE, TARGET_ALLOCATIONS } from '../types'
 import { formatMoney, formatPct } from '../lib/storage'
+import { MiniSpark, PriceChart } from '../components/PriceChart'
 
 export function Invest() {
   const { state, prices, factors, placeBuy, placeSell, equity } = useApp()
@@ -9,6 +10,8 @@ export function Invest() {
   const [amount, setAmount] = useState(100)
 
   const target = TARGET_ALLOCATIONS[state.profile.risk]
+  const meta = UNIVERSE.find((u) => u.symbol === symbol)
+  const isBond = meta?.assetClass === 'bonds'
 
   const allocation = useMemo(() => {
     const totals: Record<string, number> = {}
@@ -24,8 +27,17 @@ export function Invest() {
     <div className="page">
       <h1 className="page-title">Invest</h1>
       <p className="page-sub">
-        Diversified ETF universe with live factors. Trade manually or hand the wheel to Dunn AI.
+        Read the chart, then trade. Diversified ETF universe with live factors — or hand the wheel to Dunn AI.
       </p>
+
+      <section className="panel balance-block" style={{ marginBottom: '1rem' }}>
+        <PriceChart
+          symbol={symbol}
+          name={meta?.name}
+          accent={isBond ? 'bond' : undefined}
+          height={280}
+        />
+      </section>
 
       <div className="dash-grid">
         <section className="panel balance-block">
@@ -36,20 +48,27 @@ export function Invest() {
               const px = prices[h.symbol] ?? h.avgCost
               const pnl = ((px - h.avgCost) / h.avgCost) * 100
               return (
-                <div className="list-row" key={h.symbol}>
-                  <div>
+                <button
+                  type="button"
+                  className="market-row"
+                  key={h.symbol}
+                  onClick={() => setSymbol(h.symbol)}
+                  style={{ width: '100%' }}
+                >
+                  <div className="market-row-main">
                     <strong>
                       {h.symbol} · {h.shares.toFixed(4)} sh
                     </strong>
-                    <div className="muted">
+                    <span className="muted">
                       Avg {formatMoney(h.avgCost)} · Mark {formatMoney(px)}
-                    </div>
+                    </span>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
+                  <MiniSpark symbol={h.symbol} />
+                  <div className="market-row-px">
                     <div>{formatMoney(h.shares * px)}</div>
                     <div className={pnl >= 0 ? 'gain' : 'loss'}>{formatPct(pnl)}</div>
                   </div>
-                </div>
+                </button>
               )
             })}
           </div>
@@ -113,12 +132,18 @@ export function Invest() {
             <h3 style={{ fontSize: '1.05rem', margin: '0.5rem 0' }}>Factor radar</h3>
             <div className="factor-grid">
               {factors.slice(0, 6).map((f) => (
-                <div className="factor-pill" key={f.symbol}>
+                <button
+                  type="button"
+                  className="factor-pill"
+                  key={f.symbol}
+                  onClick={() => setSymbol(f.symbol)}
+                  style={{ textAlign: 'left', cursor: 'pointer' }}
+                >
                   <strong>{f.symbol}</strong>
                   <span>
                     1m {formatPct(f.momentum1m)} · vol {f.volatility.toFixed(0)}%
                   </span>
-                </div>
+                </button>
               ))}
             </div>
           </div>
