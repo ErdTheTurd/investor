@@ -16,6 +16,25 @@ declare global {
   }
 }
 
+export type AiProvider = 'puter' | 'pollinations' | 'webllm'
+export type AiStatusEvent =
+  | { type: 'provider'; provider: AiProvider }
+  | { type: 'local-progress'; text: string; progress: number }
+
+type StatusListener = (event: AiStatusEvent) => void
+const listeners = new Set<StatusListener>()
+
+export function onAiStatus(listener: StatusListener) {
+  listeners.add(listener)
+  return () => {
+    listeners.delete(listener)
+  }
+}
+
+function emit(event: AiStatusEvent) {
+  listeners.forEach((l) => l(event))
+}
+
 function extractText(result: unknown): string {
   if (typeof result === 'string') return result
   if (result && typeof result === 'object') {
@@ -24,6 +43,11 @@ function extractText(result: unknown): string {
     if (r.message && typeof r.message === 'object') {
       const m = r.message as Record<string, unknown>
       if (typeof m.content === 'string') return m.content
+      if (Array.isArray(m.content)) {
+        const parts = m.content as { type?: string; text?: string }[]
+        const text = parts.map((p) => (typeof p === 'string' ? p : p?.text || '')).join('')
+        if (text) return text
+      }
     }
     if (typeof r.text === 'string') return r.text
     if (typeof r.content === 'string') return r.content
@@ -38,36 +62,151 @@ function extractText(result: unknown): string {
 
 async function callPuter(messages: { role: string; content: string }[]): Promise<string> {
   if (!window.puter?.ai?.chat) throw new Error('Puter unavailable')
-  const result = await window.puter.ai.chat(messages, {
-    model: 'gpt-4.1-mini',
-    temperature: 0.4,
-  })
-  return extractText(result)
+  const models = ['openai/gpt-5.4-nano', 'gpt-4.1-mini', 'gpt-5-nano']
+  let lastError: unknown
+  for (const model of models) {
+    try {
+      const result = await window.puter.ai.chat(messages, {
+        model,
+        temperature: 0.4,
+      })
+      const text = extractText(result)
+      if (text.trim()) {
+        emit({ type: 'provider', provider: 'puter' })
+        return text
+      }
+    } catch (err) {
+      lastError = err
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error('Puter chat failed')
 }
 
 async function callPollinations(messages: { role: string; content: string }[]): Promise<string> {
-  const res = await fetch('https://text.pollinations.ai/openai', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'openai',
-      messages,
-      temperature: 0.4,
-      seed: Date.now() % 100000,
-    }),
-  })
-  if (!res.ok) throw new Error(`Pollinations ${res.status}`)
-  const data = await res.json()
-  return extractText(data)
+  const endpoints = ['/api/ai/chat', 'https://text.pollinations.ai/openai']
+  const models = ['openai-fast', 'openai']
+  let lastError: unknown
+  for (const endpoint of endpoints) {
+    for (const model of models) {
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Authorization: '',
+          },
+          credentials: 'omit',
+          body: JSON.stringify({
+            model,
+            messages,
+            temperature: 0.4,
+          }),
+        })
+        if (!res.ok) {
+          lastError = new Error(`Pollinations ${res.status}`)
+          continue
+        }
+        const data = await res.json()
+        if (data?.error) {
+          lastError = new Error(String(data.error))
+          continue
+        }
+        const text = extractText(data)
+        if (text.trim()) {
+          emit({ type: 'provider', provider: 'pollinations' })
+          return text
+        }
+      } catch (err) {
+        lastError = err
+      }
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error('Pollinations failed')
 }
 
-/** Real LLM call: Puter (user-pays, no developer key) → Pollinations keyless fallback. */
+type WebEngine = {
+  chat: {
+    completions: {
+      create: (opts: {
+        messages: { role: string; content: string }[]
+        temperature?: number
+        max_tokens?: number
+      }) => Promise<{ choices: { message: { content: string } }[] }>
+    }
+  }
+}
+
+let webEngine: WebEngine | null = null
+let webEnginePromise: Promise<WebEngine> | null = null
+
+async function getWebEngine(): Promise<WebEngine> {
+  if (webEngine) return webEngine
+  if (webEnginePromise) return webEnginePromise
+  webEnginePromise = (async () => {
+    const { CreateMLCEngine } = await import('@mlc-ai/web-llm')
+    const engine = (await CreateMLCEngine('Qwen2.5-0.5B-Instruct-q4f16_1-MLC', {
+      initProgressCallback: (r) => {
+        emit({
+          type: 'local-progress',
+          text: r.text,
+          progress: r.progress,
+        })
+      },
+    })) as unknown as WebEngine
+    webEngine = engine
+    return engine
+  })()
+  try {
+    return await webEnginePromise
+  } catch (err) {
+    webEnginePromise = null
+    throw err
+  }
+}
+
+/** On-device real LLM (Qwen 2.5) — no API key, runs in the browser via WebGPU. */
+async function callWebLLM(messages: { role: string; content: string }[]): Promise<string> {
+  const engine = await getWebEngine()
+  // Keep context tight for the small on-device model.
+  const trimmed = messages.map((m, i) =>
+    i === 1 && m.content.length > 1800 ? { ...m, content: `${m.content.slice(0, 1800)}\n…` } : m,
+  )
+  const result = await engine.chat.completions.create({
+    messages: trimmed,
+    temperature: 0.4,
+    max_tokens: 500,
+  })
+  const text = result.choices?.[0]?.message?.content || ''
+  if (!text.trim()) throw new Error('WebLLM empty response')
+  emit({ type: 'provider', provider: 'webllm' })
+  return text
+}
+
+/**
+ * Real LLM call chain (no developer API key):
+ * 1) Puter.js user-pays cloud models
+ * 2) Pollinations anonymous OpenAI-compatible API
+ * 3) On-device WebLLM (Qwen2.5-0.5B)
+ */
 export async function chatWithAi(messages: { role: string; content: string }[]): Promise<string> {
+  const errors: string[] = []
   try {
     return await callPuter(messages)
-  } catch {
-    return await callPollinations(messages)
+  } catch (err) {
+    errors.push(`puter: ${err instanceof Error ? err.message : 'fail'}`)
   }
+  try {
+    return await callPollinations(messages)
+  } catch (err) {
+    errors.push(`pollinations: ${err instanceof Error ? err.message : 'fail'}`)
+  }
+  try {
+    return await callWebLLM(messages)
+  } catch (err) {
+    errors.push(`webllm: ${err instanceof Error ? err.message : 'fail'}`)
+  }
+  throw new Error(`All AI providers failed (${errors.join(' | ')})`)
 }
 
 function portfolioSummary(state: AppState, prices: Record<string, number>): string {

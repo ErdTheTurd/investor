@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useApp } from '../context/AppContext'
 import { formatMoney } from '../lib/storage'
+import { onAiStatus, type AiProvider } from '../lib/ai'
 import type { AiDecision } from '../types'
 
 export function Agent() {
@@ -14,11 +15,25 @@ export function Agent() {
     executeDecision,
   } = useApp()
   const [input, setInput] = useState('')
+  const [provider, setProvider] = useState<AiProvider | null>(null)
+  const [localProgress, setLocalProgress] = useState<string | null>(null)
   const logRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: 'smooth' })
-  }, [state.aiMessages, aiBusy])
+  }, [state.aiMessages, aiBusy, localProgress])
+
+  useEffect(() => {
+    return onAiStatus((event) => {
+      if (event.type === 'provider') {
+        setProvider(event.provider)
+        setLocalProgress(null)
+      }
+      if (event.type === 'local-progress') {
+        setLocalProgress(`${event.text} (${Math.round(event.progress * 100)}%)`)
+      }
+    })
+  }, [])
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault()
@@ -29,6 +44,14 @@ export function Agent() {
   }
 
   const remaining = Math.max(0, state.agent.dailyAllowance - state.agent.spentToday)
+  const providerLabel =
+    provider === 'puter'
+      ? 'Puter cloud model'
+      : provider === 'pollinations'
+        ? 'Pollinations keyless model'
+        : provider === 'webllm'
+          ? 'On-device Qwen 2.5'
+          : null
 
   return (
     <div className="page">
@@ -49,7 +72,9 @@ export function Agent() {
                     <strong>
                       Proposed {m.trade.action.toUpperCase()} {m.trade.symbol}
                     </strong>
-                    <div className="muted">{formatMoney(m.trade.amount)} · {m.trade.rationale}</div>
+                    <div className="muted">
+                      {formatMoney(m.trade.amount)} · {m.trade.rationale}
+                    </div>
                     {!m.trade.executed && (
                       <button
                         className="btn btn-primary"
@@ -70,12 +95,22 @@ export function Agent() {
                         Approve trade
                       </button>
                     )}
-                    {m.trade.executed && <div className="gain" style={{ marginTop: '0.4rem' }}>Executed</div>}
+                    {m.trade.executed && (
+                      <div className="gain" style={{ marginTop: '0.4rem' }}>
+                        Executed
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             ))}
-            {aiBusy && <div className="bubble assistant muted">Dunn AI is thinking across the factor matrix…</div>}
+            {aiBusy && (
+              <div className="bubble assistant muted">
+                {localProgress
+                  ? `Loading on-device model… ${localProgress}`
+                  : 'Dunn AI is thinking across the factor matrix…'}
+              </div>
+            )}
           </div>
           <form className="chat-input" onSubmit={onSubmit}>
             <input
@@ -146,6 +181,7 @@ export function Agent() {
             <span className="pulse-dot" />
             Remaining today {formatMoney(remaining)}
           </div>
+          {providerLabel && <div className="chip">Model · {providerLabel}</div>}
 
           <button
             className="btn btn-champagne"
@@ -157,8 +193,9 @@ export function Agent() {
           </button>
 
           <p className="muted" style={{ fontSize: '0.85rem', lineHeight: 1.5 }}>
-            Powered by Puter.js (real models, no developer API key — you authenticate as the user) with a keyless
-            Pollinations fallback. Factor inputs are computed from live market bars before every call.
+            No developer API key required. Dunn AI tries Puter.js (real cloud models, you cover usage), then a keyless
+            Pollinations endpoint, then an on-device Qwen 2.5 model in your browser. Every call includes the live factor
+            matrix.
           </p>
 
           <div>
