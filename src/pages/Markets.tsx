@@ -15,7 +15,6 @@ export function Markets() {
   const [sleeve, setSleeve] = useState<'stocks' | 'bonds'>('stocks')
 
   const selectedMeta = UNIVERSE.find((u) => u.symbol === selected)
-  const selectedQuote = quotes[selected]
   const list = sleeve === 'stocks' ? stocks : bonds
 
   return (
@@ -57,8 +56,6 @@ export function Markets() {
           name={selectedMeta?.name}
           accent={sleeve === 'bonds' ? 'bond' : undefined}
           height={300}
-          asOf={selectedQuote?.asOf}
-          simulated={selectedQuote?.simulated === true || marketSimulated}
         />
       </section>
 
@@ -94,7 +91,15 @@ export function Markets() {
                     {quotes[u.symbol]?.simulated ? (
                       <div className="sim-tag">Simulated</div>
                     ) : quotes[u.symbol]?.asOf ? (
-                      <div className="muted asof-mini">as of {new Date(quotes[u.symbol].asOf!).toLocaleTimeString()}</div>
+                      <div className="muted asof-mini">
+                        as of{' '}
+                        {new Date(quotes[u.symbol].asOf!).toLocaleString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                        })}
+                      </div>
                     ) : null}
                   </div>
                 </button>

@@ -1,19 +1,19 @@
 {
   "symbol": "VXUS",
-  "asOf": "2026-11-12T18:24:30.000Z",
-  "fetchedAt": "2026-11-12T18:24:39.533Z",
+  "asOf": "2026-11-12T19:20:17.000Z",
+  "fetchedAt": "2026-11-12T19:20:30.081Z",
   "source": "yahoo",
   "range": "2y",
   "interval": "1d",
   "quote": {
     "symbol": "VXUS",
-    "price": 82.805,
-    "previousClose": 60.95,
-    "changePercent": 35.85726004922068,
+    "price": 82.8,
+    "previousClose": 83.44000244140625,
+    "changePercent": -0.7670211201823481,
     "high52": 88.62,
     "low52": 72.11,
-    "volume": 3006543,
-    "asOf": "2026-11-12T18:24:30.000Z",
+    "volume": 3420118,
+    "asOf": "2026-11-12T19:20:17.000Z",
     "simulated": false
   },
   "bars": [
@@ -3525,10 +3525,10 @@
       "date": "2026-11-11"
     },
     {
-      "close": 82.80500030517578,
+      "close": 82.80000305175781,
       "high": 83.05999755859375,
       "low": 82.4916000366211,
-      "volume": 3006543,
+      "volume": 3420118,
       "date": "2026-11-12"
     }
   ]

@@ -97,7 +97,7 @@ describe('marketIsSimulated', () => {
     expect(marketIsSimulated([])).toBe(true)
   })
 
-  it('is true when any quote is simulated', () => {
+  it('is true when any required quote is simulated or missing', () => {
     const real: Quote = {
       symbol: 'SPY',
       price: 1,
@@ -108,8 +108,16 @@ describe('marketIsSimulated', () => {
       simulated: false,
     }
     const fake: Quote = { ...real, symbol: 'QQQ', simulated: true }
-    expect(marketIsSimulated([real, fake])).toBe(true)
-    expect(marketIsSimulated([real])).toBe(false)
+    expect(marketIsSimulated([real, fake], ['SPY', 'QQQ'])).toBe(true)
+    expect(marketIsSimulated([real], ['SPY', 'QQQ'])).toBe(true)
+    expect(marketIsSimulated([real, { ...real, symbol: 'QQQ' }], ['SPY', 'QQQ'])).toBe(false)
+  })
+})
+
+describe('sliceBarsForRange 5d', () => {
+  it('keeps five daily bars for the 1W range', () => {
+    const bars = sampleBars(20)
+    expect(sliceBarsForRange(bars, '5d')).toHaveLength(5)
   })
 })
 

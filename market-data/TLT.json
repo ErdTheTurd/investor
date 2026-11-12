@@ -1,19 +1,19 @@
 {
   "symbol": "TLT",
-  "asOf": "2026-11-12T18:24:36.000Z",
-  "fetchedAt": "2026-11-12T18:24:40.926Z",
+  "asOf": "2026-11-12T19:20:20.000Z",
+  "fetchedAt": "2026-11-12T19:20:31.386Z",
   "source": "yahoo",
   "range": "2y",
   "interval": "1d",
   "quote": {
     "symbol": "TLT",
-    "price": 79.832,
-    "previousClose": 90.66,
-    "changePercent": -11.94352525921024,
+    "price": 79.86,
+    "previousClose": 80.91999816894531,
+    "changePercent": -1.309933505846406,
     "high52": 90.86,
     "low52": 76.43,
-    "volume": 25330024,
-    "asOf": "2026-11-12T18:24:36.000Z",
+    "volume": 29987514,
+    "asOf": "2026-11-12T19:20:20.000Z",
     "simulated": false
   },
   "bars": [
@@ -3525,10 +3525,10 @@
       "date": "2026-11-11"
     },
     {
-      "close": 79.8324966430664,
+      "close": 79.86000061035156,
       "high": 80.80999755859375,
       "low": 79.75,
-      "volume": 25330024,
+      "volume": 29987514,
       "date": "2026-11-12"
     }
   ]

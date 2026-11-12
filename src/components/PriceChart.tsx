@@ -20,8 +20,6 @@ interface PriceChartProps {
   showHeader?: boolean
   defaultRange?: ChartRange
   onPrice?: (price: number, changePct: number) => void
-  asOf?: string
-  simulated?: boolean
 }
 
 function niceTicks(min: number, max: number, count = 4) {
@@ -44,22 +42,15 @@ export function PriceChart({
   showHeader = true,
   defaultRange = '3mo',
   onPrice,
-  asOf: asOfProp,
-  simulated: simulatedProp,
 }: PriceChartProps) {
   const gid = useId().replace(/:/g, '')
   const [range, setRange] = useState<ChartRange>(defaultRange)
   const [bars, setBars] = useState<ChartBar[]>([])
   const [loading, setLoading] = useState(true)
   const [hover, setHover] = useState<Point | null>(null)
-  const [asOf, setAsOf] = useState<string | null>(asOfProp ?? null)
-  const [simulated, setSimulated] = useState(Boolean(simulatedProp))
+  const [asOf, setAsOf] = useState<string | null>(null)
+  const [simulated, setSimulated] = useState(false)
   const svgRef = useRef<SVGSVGElement>(null)
-
-  useEffect(() => {
-    setAsOf(asOfProp ?? null)
-    setSimulated(Boolean(simulatedProp))
-  }, [asOfProp, simulatedProp])
 
   useEffect(() => {
     let cancelled = false
@@ -353,6 +344,7 @@ export function CompareChart({
   const [range, setRange] = useState<ChartRange>('1y')
   const [stock, setStock] = useState<ChartBar[]>([])
   const [bond, setBond] = useState<ChartBar[]>([])
+  const [simulated, setSimulated] = useState(false)
   const [loading, setLoading] = useState(true)
   const [hoverIdx, setHoverIdx] = useState<number | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
@@ -361,12 +353,15 @@ export function CompareChart({
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    void Promise.all([getBars(stockSymbol, range), getBars(bondSymbol, range)]).then(([s, b]) => {
-      if (cancelled) return
-      setStock(s)
-      setBond(b)
-      setLoading(false)
-    })
+    void Promise.all([getMarketSnapshot(stockSymbol, range), getMarketSnapshot(bondSymbol, range)]).then(
+      ([s, b]) => {
+        if (cancelled) return
+        setStock(s.bars)
+        setBond(b.bars)
+        setSimulated(s.simulated || b.simulated)
+        setLoading(false)
+      },
+    )
     return () => {
       cancelled = true
     }
@@ -455,6 +450,7 @@ export function CompareChart({
               </span>
             </div>
           )}
+          {simulated ? <div className="sim-tag">Simulated data (not live)</div> : null}
         </div>
         <div className="range-pills" role="tablist" aria-label="Compare timeframe">
           {CHART_RANGES.map((r) => (

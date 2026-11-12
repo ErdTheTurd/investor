@@ -17,9 +17,13 @@ GitHub Pages has no server, so the app does **not** call Yahoo from the browser 
 A scheduled GitHub Actions workflow (`Fetch market data`) pulls daily bars + a latest quote for every universe symbol from Yahoo server-side and writes:
 
 - `public/market-data/*.json` (Vite `public/` → included in builds)
-- `market-data/*.json` (repo root → served immediately by Pages)
+- `market-data/*.json` (committed on `main` for history)
 
-The Pages app loads those files first. Local `npm run dev` still uses the Vite `/api/yahoo` proxy when static files are missing. Synthetic bars are a last resort and are labeled **Simulated data** in the UI — never “live”. Auto-Invest and AI-executed trades are blocked on simulated data.
+It then deploys the site via `actions/deploy-pages` (GITHUB_TOKEN pushes do not trigger branch-based Pages builds).
+
+**One-time setting:** Settings → Pages → Build and deployment → Source → **GitHub Actions**.
+
+The Pages app loads those JSON files first. Local `npm run dev` still uses the Vite `/api/yahoo` proxy when static files are missing. Synthetic bars are a last resort and are labeled **Simulated data** in the UI — never “live”. Auto-Invest and AI-executed trades are blocked on simulated data (including incomplete universe coverage).
 
 Refresh locally:
 

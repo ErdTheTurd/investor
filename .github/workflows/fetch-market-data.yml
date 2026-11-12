@@ -1,10 +1,11 @@
 # Fetches Yahoo Finance bars/quotes into static JSON for GitHub Pages.
 # No secrets — Yahoo chart API is keyless.
 #
-# After this lands on main, each successful run commits updated files under
-# market-data/ and public/market-data/, which Pages serves from the repo root.
-# That is intentional: Pages currently deploys from main's root, so committing
-# data is the simplest path that needs no repo-settings change.
+# Publishing: GITHUB_TOKEN pushes do NOT trigger branch-based Pages builds, so
+# this workflow deploys via actions/deploy-pages after refreshing JSON.
+# One-time setting (ERD): Settings → Pages → Source → GitHub Actions.
+# Commits to main keep market-data in git history; the deploy job is what
+# makes the live site pick up new snapshots.
 
 name: Fetch market data
 
@@ -19,9 +20,6 @@ on:
     - cron: '15 21 * * 1-5'
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 concurrency:
   group: fetch-market-data
   cancel-in-progress: false
@@ -29,6 +27,13 @@ concurrency:
 jobs:
   fetch:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -48,7 +53,26 @@ jobs:
           git add market-data public/market-data
           if git diff --staged --quiet; then
             echo "No market-data changes to commit."
-            exit 0
+          else
+            git commit -m "chore: refresh Yahoo market-data snapshot"
+            git push
           fi
-          git commit -m "chore: refresh Yahoo market-data snapshot"
-          git push
+
+      - name: Assemble Pages bundle
+        run: |
+          mkdir -p _site
+          cp index.html 404.html favicon.svg .nojekyll _site/
+          cp -r assets _site/assets
+          cp -r market-data _site/market-data
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

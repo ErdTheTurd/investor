@@ -44,7 +44,7 @@ function intervalForRange(range: ChartRange) {
 function daysForRange(range: ChartRange) {
   switch (range) {
     case '5d':
-      return 7
+      return 5
     case '1mo':
       return 22
     case '3mo':
@@ -195,9 +195,12 @@ function quoteFromYahoo(symbol: string, bars: ChartBar[], data: unknown): Quote 
   const last = bars[bars.length - 1]
   const prev = bars[bars.length - 2] ?? last
   const price = Number(meta?.regularMarketPrice ?? last.close)
-  const previousClose = Number(meta?.chartPreviousClose ?? meta?.previousClose ?? prev.close)
+  const previousClose = Number(
+    Number.isFinite(Number(meta?.previousClose)) ? meta?.previousClose : prev.close,
+  )
   const asOfMs = Number(meta?.regularMarketTime)
-  const asOf = Number.isFinite(asOfMs) ? new Date(asOfMs * 1000).toISOString() : new Date().toISOString()
+  const asOf =
+    Number.isFinite(asOfMs) && asOfMs > 0 ? new Date(asOfMs * 1000).toISOString() : undefined
   return {
     symbol,
     price,
@@ -405,10 +408,20 @@ export async function getQuotes(symbols: string[] = UNIVERSE.map((u) => u.symbol
   return results
 }
 
-/** True when any quote is marked simulated (or missing as-of from a real source). */
-export function marketIsSimulated(quotes: Quote[]): boolean {
-  if (!quotes.length) return true
-  return quotes.some((q) => q.simulated === true)
+/**
+ * True when AI trading must stay blocked: incomplete universe coverage, or any
+ * quote missing / marked simulated (e.g. getQuotes timed out mid-batch).
+ */
+export function marketIsSimulated(
+  quotes: Quote[],
+  requiredSymbols: string[] = UNIVERSE.map((u) => u.symbol),
+): boolean {
+  if (!requiredSymbols.length) return !quotes.length || quotes.some((q) => q.simulated === true)
+  const bySymbol = new Map(quotes.map((q) => [q.symbol, q]))
+  return requiredSymbols.some((symbol) => {
+    const q = bySymbol.get(symbol)
+    return !q || q.simulated === true
+  })
 }
 
 export function formatAsOf(asOf: string | null | undefined): string {

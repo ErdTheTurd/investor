@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react'
@@ -65,12 +66,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [loadingMarket, setLoadingMarket] = useState(false)
   const [aiBusy, setAiBusy] = useState(false)
   const [marketReady, setMarketReady] = useState(false)
-  const [marketSimulated, setMarketSimulated] = useState(false)
+  const [marketSimulated, setMarketSimulated] = useState(true)
   const [marketAsOf, setMarketAsOf] = useState<string | null>(null)
+  const marketSimulatedRef = useRef(true)
+  const pricesRef = useRef<Record<string, number>>({})
 
   useEffect(() => {
     saveState(state)
   }, [state])
+
+  useEffect(() => {
+    marketSimulatedRef.current = marketSimulated
+  }, [marketSimulated])
+
+  useEffect(() => {
+    pricesRef.current = prices
+  }, [prices])
 
   const refreshMarket = useCallback(async () => {
     setLoadingMarket(true)
@@ -84,9 +95,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         qmap[q.symbol] = q
         if (q.asOf && (!newest || q.asOf > newest)) newest = q.asOf
       }
+      const simulated = marketIsSimulated(list)
       setPrices(map)
       setQuotes(qmap)
-      setMarketSimulated(marketIsSimulated(list))
+      pricesRef.current = map
+      marketSimulatedRef.current = simulated
+      setMarketSimulated(simulated)
       setMarketAsOf(newest)
       const f = await buildUniverseFactors()
       setFactors(f)
@@ -151,7 +165,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   const updateAgent = (patch: Partial<AppState['agent']>) => {
-    if (patch.enabled === true && marketSimulated) return
+    if (patch.enabled === true && marketSimulatedRef.current) return
     setState((s) => ({ ...s, agent: { ...s.agent, ...patch } }))
   }
 
@@ -162,7 +176,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }))
 
   const executeDecision = (decision: AiDecision, messageId?: string) => {
-    if (marketSimulated && decision.action !== 'hold') {
+    if (marketSimulatedRef.current && decision.action !== 'hold') {
       if (messageId) {
         setState((s) => ({
           ...s,
@@ -178,7 +192,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       return
     }
-    const price = prices[decision.symbol]
+    const price = pricesRef.current[decision.symbol]
     if (!price && decision.action !== 'hold') return
     setState((s) => {
       const result = applyDecision(s, decision, price || 0)
@@ -230,6 +244,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             }
           : undefined,
       }
+      const simulatedNow = marketSimulatedRef.current
+      const pricesNow = pricesRef.current
       setState((s) => {
         let next = { ...s, aiMessages: [...s.aiMessages, assistant] }
         if (
@@ -238,9 +254,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
           decision.amount > 0 &&
           decision.amount <= s.agent.autoApproveUnder &&
           s.agent.enabled &&
-          !marketSimulated
+          !simulatedNow
         ) {
-          const applied = applyDecision(next, decision, prices[decision.symbol] || 0)
+          const applied = applyDecision(next, decision, pricesNow[decision.symbol] || 0)
           next = {
             ...applied.state,
             aiMessages: applied.state.aiMessages.map((m) =>
@@ -253,7 +269,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 : m,
             ),
           }
-        } else if (decision && decision.action !== 'hold' && marketSimulated) {
+        } else if (decision && decision.action !== 'hold' && simulatedNow) {
           next = {
             ...next,
             aiMessages: next.aiMessages.map((m) =>
@@ -283,7 +299,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const runAiInvest = async () => {
     if (!state.agent.enabled) return
-    if (marketSimulated) {
+    if (marketSimulatedRef.current) {
       const assistant: AiMessage = {
         id: uid('msg'),
         role: 'assistant',
@@ -298,10 +314,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       const { runAutonomousInvest } = await import('../lib/ai')
       const remaining = Math.max(0, state.agent.dailyAllowance - state.agent.spentToday)
+      const pricesAtStart = pricesRef.current
       const { reply, decision } = await runAutonomousInvest({
         state,
         factors,
-        prices,
+        prices: pricesAtStart,
         remainingAllowance: remaining,
       })
       const assistant: AiMessage = {
@@ -319,10 +336,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
             }
           : undefined,
       }
+      const simulatedNow = marketSimulatedRef.current
+      const pricesNow = pricesRef.current
       setState((s) => {
         let next = { ...s, aiMessages: [...s.aiMessages, assistant] }
-        if (decision && decision.action !== 'hold') {
-          const applied = applyDecision(next, decision, prices[decision.symbol] || 0)
+        if (decision && decision.action !== 'hold' && !simulatedNow) {
+          const applied = applyDecision(next, decision, pricesNow[decision.symbol] || 0)
           next = {
             ...applied.state,
             aiMessages: applied.state.aiMessages.map((m) =>
@@ -331,6 +350,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
                     ...m,
                     trade: { ...m.trade, executed: applied.executed },
                     content: `${m.content}\n\n${applied.message}`,
+                  }
+                : m,
+            ),
+          }
+        } else if (decision && decision.action !== 'hold' && simulatedNow) {
+          next = {
+            ...next,
+            aiMessages: next.aiMessages.map((m) =>
+              m.id === assistant.id
+                ? {
+                    ...m,
+                    content: `${m.content}\n\nNot executed: market data turned simulated during the AI request — trade blocked.`,
                   }
                 : m,
             ),

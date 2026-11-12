@@ -38,6 +38,7 @@ const USER_AGENT =
 const MAX_ATTEMPTS = 4
 const BASE_BACKOFF_MS = 800
 const BETWEEN_SYMBOLS_MS = 350
+const REQUEST_TIMEOUT_MS = 15_000
 
 const PUBLIC_DIR = path.join(ROOT, 'public', 'market-data')
 const PAGES_DIR = path.join(ROOT, 'market-data')
@@ -77,10 +78,12 @@ function parseChartPayload(symbol, data) {
 
   const meta = result.meta ?? {}
   const last = bars[bars.length - 1]
-  const prev = bars[bars.length - 2] ?? last
+  const prevSession = bars[bars.length - 2] ?? last
   const price = Number(meta.regularMarketPrice ?? last.close)
+  // Prefer Yahoo's prior-session close; never chartPreviousClose (that is the
+  // first bar of the requested range, e.g. ~2y ago on a 2y chart).
   const previousClose = Number(
-    meta.chartPreviousClose ?? meta.previousClose ?? prev.close,
+    Number.isFinite(Number(meta.previousClose)) ? meta.previousClose : prevSession.close,
   )
   const changePercent =
     previousClose !== 0 ? ((price - previousClose) / previousClose) * 100 : 0
@@ -88,9 +91,8 @@ function parseChartPayload(symbol, data) {
   const low52 = Number(meta.fiftyTwoWeekLow ?? Math.min(...bars.map((b) => b.low)))
   const volume = Number(meta.regularMarketVolume ?? last.volume)
   const asOfMs = Number(meta.regularMarketTime)
-  const asOf = Number.isFinite(asOfMs)
-    ? new Date(asOfMs * 1000).toISOString()
-    : new Date().toISOString()
+  // Only a verified Yahoo quote timestamp counts — never the fetch clock.
+  const asOf = Number.isFinite(asOfMs) && asOfMs > 0 ? new Date(asOfMs * 1000).toISOString() : null
 
   return {
     symbol,
@@ -107,7 +109,7 @@ function parseChartPayload(symbol, data) {
       high52,
       low52,
       volume,
-      asOf,
+      asOf: asOf ?? undefined,
       simulated: false,
     },
     bars,
@@ -123,6 +125,7 @@ async function fetchWithRetry(symbol) {
           Accept: 'application/json',
           'User-Agent': USER_AGENT,
         },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
