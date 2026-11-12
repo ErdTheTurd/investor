@@ -1,7 +1,9 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import {
   CHART_RANGES,
+  formatAsOf,
   getBars,
+  getMarketSnapshot,
   rangeReturn,
   type ChartBar,
   type ChartRange,
@@ -18,6 +20,8 @@ interface PriceChartProps {
   showHeader?: boolean
   defaultRange?: ChartRange
   onPrice?: (price: number, changePct: number) => void
+  asOf?: string
+  simulated?: boolean
 }
 
 function niceTicks(min: number, max: number, count = 4) {
@@ -40,24 +44,35 @@ export function PriceChart({
   showHeader = true,
   defaultRange = '3mo',
   onPrice,
+  asOf: asOfProp,
+  simulated: simulatedProp,
 }: PriceChartProps) {
   const gid = useId().replace(/:/g, '')
   const [range, setRange] = useState<ChartRange>(defaultRange)
   const [bars, setBars] = useState<ChartBar[]>([])
   const [loading, setLoading] = useState(true)
   const [hover, setHover] = useState<Point | null>(null)
+  const [asOf, setAsOf] = useState<string | null>(asOfProp ?? null)
+  const [simulated, setSimulated] = useState(Boolean(simulatedProp))
   const svgRef = useRef<SVGSVGElement>(null)
+
+  useEffect(() => {
+    setAsOf(asOfProp ?? null)
+    setSimulated(Boolean(simulatedProp))
+  }, [asOfProp, simulatedProp])
 
   useEffect(() => {
     let cancelled = false
     setLoading(true)
     setHover(null)
-    void getBars(symbol, range).then((data) => {
+    void getMarketSnapshot(symbol, range).then((snap) => {
       if (cancelled) return
-      setBars(data)
+      setBars(snap.bars)
+      setAsOf(snap.asOf)
+      setSimulated(snap.simulated)
       setLoading(false)
-      if (data.length >= 2) {
-        onPrice?.(data[data.length - 1].close, rangeReturn(data))
+      if (snap.bars.length >= 2) {
+        onPrice?.(snap.bars[snap.bars.length - 1].close, rangeReturn(snap.bars))
       }
     })
     return () => {
@@ -150,6 +165,9 @@ export function PriceChart({
             <div className={positive ? 'gain' : 'loss'}>
               {formatPct(changePct)} <span className="muted">over {range}</span>
               {displayDate ? <span className="muted"> · {displayDate}</span> : null}
+            </div>
+            <div className={simulated ? 'sim-tag' : 'muted'} style={{ marginTop: '0.25rem', fontSize: '0.8rem' }}>
+              {simulated ? 'Simulated data (not live)' : `As of ${formatAsOf(asOf)}`}
             </div>
           </div>
           <div className="range-pills" role="tablist" aria-label="Chart timeframe">

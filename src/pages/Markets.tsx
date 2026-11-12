@@ -8,20 +8,24 @@ const STOCK_CLASSES: AssetClass[] = ['us_equity', 'intl_equity']
 const BOND_CLASSES: AssetClass[] = ['bonds']
 
 export function Markets() {
-  const { prices, factors } = useApp()
+  const { prices, quotes, factors, marketSimulated, marketAsOfLabel } = useApp()
   const stocks = useMemo(() => UNIVERSE.filter((u) => STOCK_CLASSES.includes(u.assetClass)), [])
   const bonds = useMemo(() => UNIVERSE.filter((u) => BOND_CLASSES.includes(u.assetClass)), [])
   const [selected, setSelected] = useState(stocks[0]?.symbol ?? 'SPY')
   const [sleeve, setSleeve] = useState<'stocks' | 'bonds'>('stocks')
 
   const selectedMeta = UNIVERSE.find((u) => u.symbol === selected)
+  const selectedQuote = quotes[selected]
   const list = sleeve === 'stocks' ? stocks : bonds
 
   return (
     <div className="page">
       <h1 className="page-title">Markets</h1>
       <p className="page-sub">
-        Scrub the chart like a pro terminal — stocks and bonds, clear timeframes, live marks.
+        Scrub the chart like a pro terminal — stocks and bonds, clear timeframes
+        {marketSimulated
+          ? '. Marks are simulated until Yahoo snapshots load.'
+          : `, Yahoo marks as of ${marketAsOfLabel}.`}
       </p>
 
       <div className="sleeve-toggle" role="tablist" aria-label="Asset sleeve">
@@ -53,6 +57,8 @@ export function Markets() {
           name={selectedMeta?.name}
           accent={sleeve === 'bonds' ? 'bond' : undefined}
           height={300}
+          asOf={selectedQuote?.asOf}
+          simulated={selectedQuote?.simulated === true || marketSimulated}
         />
       </section>
 
@@ -85,6 +91,11 @@ export function Markets() {
                       {f ? formatPct(f.momentum1m) : dayPx ? formatPct(dayPx) : ''}
                       {f ? <span className="muted"> 1m</span> : null}
                     </div>
+                    {quotes[u.symbol]?.simulated ? (
+                      <div className="sim-tag">Simulated</div>
+                    ) : quotes[u.symbol]?.asOf ? (
+                      <div className="muted asof-mini">as of {new Date(quotes[u.symbol].asOf!).toLocaleTimeString()}</div>
+                    ) : null}
                   </div>
                 </button>
               )

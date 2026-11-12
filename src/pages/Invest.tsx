@@ -27,7 +27,7 @@ export function Invest() {
     <div className="page">
       <h1 className="page-title">Invest</h1>
       <p className="page-sub">
-        Read the chart, then trade. Diversified ETF universe with live factors — or hand the wheel to Dunn AI.
+        Read the chart, then trade. Diversified ETF universe with Yahoo factor snapshots — or hand the wheel to Dunn AI.
       </p>
 
       <section className="panel balance-block" style={{ marginBottom: '1rem' }}>

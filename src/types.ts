@@ -92,6 +92,10 @@ export interface Quote {
   high52: number
   low52: number
   volume?: number
+  /** ISO timestamp from Yahoo regularMarketTime (or file asOf). */
+  asOf?: string
+  /** True only when bars were generated locally because no real feed was available. */
+  simulated?: boolean
 }
 
 export interface FactorSnapshot {

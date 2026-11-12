@@ -9,6 +9,8 @@ export function Agent() {
     state,
     factors,
     aiBusy,
+    marketSimulated,
+    marketAsOfLabel,
     updateAgent,
     sendAiMessage,
     runAiInvest,
@@ -57,8 +59,11 @@ export function Agent() {
     <div className="page">
       <h1 className="page-title">Dunn AI</h1>
       <p className="page-sub">
-        A real LLM reading {factors.length || '…'} live factor rows — not a toy rule engine. Set an allowance and it can
-        invest itself.
+        A real LLM reading {factors.length || '…'} factor rows — not a toy rule engine. Set an allowance and it can
+        invest itself
+        {marketSimulated
+          ? '. Auto-Invest is blocked while prices are simulated.'
+          : ` using Yahoo marks as of ${marketAsOfLabel}.`}
       </p>
 
       <div className="dash-grid">
@@ -80,6 +85,8 @@ export function Agent() {
                         className="btn btn-primary"
                         type="button"
                         style={{ marginTop: '0.65rem' }}
+                        disabled={marketSimulated}
+                        title={marketSimulated ? 'Blocked while market data is simulated' : undefined}
                         onClick={() => {
                           const decision: AiDecision = {
                             action: m.trade!.action,
@@ -92,7 +99,7 @@ export function Agent() {
                           executeDecision(decision, m.id)
                         }}
                       >
-                        Approve trade
+                        {marketSimulated ? 'Approve blocked (simulated data)' : 'Approve trade'}
                       </button>
                     )}
                     {m.trade.executed && (
@@ -129,17 +136,30 @@ export function Agent() {
           <div className="toggle">
             <div>
               <strong>Auto-Invest</strong>
-              <div className="muted">AI places trades under your daily allowance</div>
+              <div className="muted">
+                {marketSimulated
+                  ? 'Disabled — simulated market data cannot drive AI trades'
+                  : 'AI places trades under your daily allowance'}
+              </div>
             </div>
             <button
               type="button"
               className={`switch ${state.agent.enabled ? 'on' : ''}`}
               aria-pressed={state.agent.enabled}
-              onClick={() => updateAgent({ enabled: !state.agent.enabled })}
+              disabled={marketSimulated && !state.agent.enabled}
+              onClick={() => {
+                if (marketSimulated && !state.agent.enabled) return
+                updateAgent({ enabled: !state.agent.enabled })
+              }}
             >
               <i />
             </button>
           </div>
+          {marketSimulated && (
+            <div className="chip chip-warn" role="status">
+              Simulated data — Auto-Invest and AI trade execution are blocked
+            </div>
+          )}
 
           <div className="field">
             <label htmlFor="allowance">Daily AI allowance (USD)</label>
@@ -186,7 +206,7 @@ export function Agent() {
           <button
             className="btn btn-champagne"
             type="button"
-            disabled={!state.agent.enabled || aiBusy || remaining <= 0}
+            disabled={!state.agent.enabled || aiBusy || remaining <= 0 || marketSimulated}
             onClick={() => void runAiInvest()}
           >
             Run Auto-Invest now
@@ -194,8 +214,8 @@ export function Agent() {
 
           <p className="muted" style={{ fontSize: '0.85rem', lineHeight: 1.5 }}>
             No developer API key required. Dunn AI tries Puter.js (real cloud models, you cover usage), then a keyless
-            Pollinations endpoint, then an on-device Qwen 2.5 model in your browser. Every call includes the live factor
-            matrix.
+            Pollinations endpoint, then an on-device Qwen 2.5 model in your browser. Every call includes the factor
+            matrix from Yahoo snapshots (never labeled live when data is simulated).
           </p>
 
           <div>

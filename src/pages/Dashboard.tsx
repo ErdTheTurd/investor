@@ -33,7 +33,8 @@ function EquityArea({ points }: { points: number[] }) {
 }
 
 export function Dashboard() {
-  const { state, equity, prices, makeDeposit, loadingMarket, refreshMarket } = useApp()
+  const { state, equity, prices, makeDeposit, loadingMarket, refreshMarket, marketSimulated, marketAsOfLabel } =
+    useApp()
   const [depositAmt, setDepositAmt] = useState(100)
   const [toast, setToast] = useState<string | null>(null)
 
@@ -69,6 +70,11 @@ export function Dashboard() {
             {formatPct(dayChange)} vs prior snapshot
             {loadingMarket ? ' · refreshing markets…' : ''}
           </div>
+          <p className={`market-asof ${marketSimulated ? 'sim-tag' : 'muted'}`}>
+            {marketSimulated
+              ? 'Simulated market data — not live quotes'
+              : `Yahoo quotes as of ${marketAsOfLabel}`}
+          </p>
           <EquityArea points={state.equityHistory.map((h) => h.value)} />
           <div className="quick-actions">
             <div className="field" style={{ minWidth: 120 }}>
@@ -100,7 +106,7 @@ export function Dashboard() {
         <section className="panel balance-block stack">
           <div>
             <h2 style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>Holdings</h2>
-            <p className="muted">Live marks with mini trend lines.</p>
+            <p className="muted">Yahoo marks with mini trend lines.</p>
           </div>
           <div className="list">
             {holdingsPreview.length === 0 && <p className="muted">No positions yet — deposit, then let AI invest.</p>}

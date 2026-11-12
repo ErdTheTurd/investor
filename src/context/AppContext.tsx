@@ -7,9 +7,9 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import type { AiDecision, AiMessage, AppState, FactorSnapshot, Goal, RiskProfile } from '../types'
+import type { AiDecision, AiMessage, AppState, FactorSnapshot, Goal, Quote, RiskProfile } from '../types'
 import { buildUniverseFactors } from '../lib/factors'
-import { getQuotes } from '../lib/market'
+import { formatAsOf, getQuotes, marketIsSimulated } from '../lib/market'
 import {
   applyDecision,
   buy,
@@ -25,10 +25,16 @@ import { loadState, saveState, uid } from '../lib/storage'
 interface AppContextValue {
   state: AppState
   prices: Record<string, number>
+  quotes: Record<string, Quote>
   factors: FactorSnapshot[]
   equity: number
   loadingMarket: boolean
   aiBusy: boolean
+  /** True when any universe quote is synthetic fallback data. */
+  marketSimulated: boolean
+  /** Newest as-of across loaded quotes, if any. */
+  marketAsOf: string | null
+  marketAsOfLabel: string
   refreshMarket: () => Promise<void>
   completeOnboarding: (data: {
     name: string
@@ -54,10 +60,13 @@ const AppContext = createContext<AppContextValue | null>(null)
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(() => touchStreak(loadState()))
   const [prices, setPrices] = useState<Record<string, number>>({})
+  const [quotes, setQuotes] = useState<Record<string, Quote>>({})
   const [factors, setFactors] = useState<FactorSnapshot[]>([])
   const [loadingMarket, setLoadingMarket] = useState(false)
   const [aiBusy, setAiBusy] = useState(false)
   const [marketReady, setMarketReady] = useState(false)
+  const [marketSimulated, setMarketSimulated] = useState(false)
+  const [marketAsOf, setMarketAsOf] = useState<string | null>(null)
 
   useEffect(() => {
     saveState(state)
@@ -66,10 +75,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const refreshMarket = useCallback(async () => {
     setLoadingMarket(true)
     try {
-      const quotes = await getQuotes()
+      const list = await getQuotes()
       const map: Record<string, number> = {}
-      for (const q of quotes) map[q.symbol] = q.price
+      const qmap: Record<string, Quote> = {}
+      let newest: string | null = null
+      for (const q of list) {
+        map[q.symbol] = q.price
+        qmap[q.symbol] = q
+        if (q.asOf && (!newest || q.asOf > newest)) newest = q.asOf
+      }
       setPrices(map)
+      setQuotes(qmap)
+      setMarketSimulated(marketIsSimulated(list))
+      setMarketAsOf(newest)
       const f = await buildUniverseFactors()
       setFactors(f)
       setState((s) => recordEquityPoint(s, totalEquity(s, map)))
@@ -132,8 +150,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setState((s) => sell(s, symbol, amount, price))
   }
 
-  const updateAgent = (patch: Partial<AppState['agent']>) =>
+  const updateAgent = (patch: Partial<AppState['agent']>) => {
+    if (patch.enabled === true && marketSimulated) return
     setState((s) => ({ ...s, agent: { ...s.agent, ...patch } }))
+  }
 
   const addGoal = (goal: Omit<Goal, 'id' | 'allocated'>) =>
     setState((s) => ({
@@ -142,6 +162,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }))
 
   const executeDecision = (decision: AiDecision, messageId?: string) => {
+    if (marketSimulated && decision.action !== 'hold') {
+      if (messageId) {
+        setState((s) => ({
+          ...s,
+          aiMessages: s.aiMessages.map((m) =>
+            m.id === messageId
+              ? {
+                  ...m,
+                  content: `${m.content}\n\nBlocked: market data is simulated — AI trades require real Yahoo quotes.`,
+                }
+              : m,
+          ),
+        }))
+      }
+      return
+    }
     const price = prices[decision.symbol]
     if (!price && decision.action !== 'hold') return
     setState((s) => {
@@ -201,7 +237,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           decision.action !== 'hold' &&
           decision.amount > 0 &&
           decision.amount <= s.agent.autoApproveUnder &&
-          s.agent.enabled
+          s.agent.enabled &&
+          !marketSimulated
         ) {
           const applied = applyDecision(next, decision, prices[decision.symbol] || 0)
           next = {
@@ -212,6 +249,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
                     ...m,
                     trade: { ...m.trade, executed: applied.executed },
                     content: `${m.content}\n\n${applied.message}`,
+                  }
+                : m,
+            ),
+          }
+        } else if (decision && decision.action !== 'hold' && marketSimulated) {
+          next = {
+            ...next,
+            aiMessages: next.aiMessages.map((m) =>
+              m.id === assistant.id
+                ? {
+                    ...m,
+                    content: `${m.content}\n\nNot executed: market data is simulated — AI trades are blocked until real quotes load.`,
                   }
                 : m,
             ),
@@ -234,6 +283,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const runAiInvest = async () => {
     if (!state.agent.enabled) return
+    if (marketSimulated) {
+      const assistant: AiMessage = {
+        id: uid('msg'),
+        role: 'assistant',
+        content:
+          'Auto-Invest blocked: current market data is simulated. Real Yahoo quotes are required before AI can place trades.',
+        createdAt: new Date().toISOString(),
+      }
+      setState((s) => ({ ...s, aiMessages: [...s.aiMessages, assistant] }))
+      return
+    }
     setAiBusy(true)
     try {
       const { runAutonomousInvest } = await import('../lib/ai')
@@ -288,13 +348,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setState(touchStreak(loadState()))
   }
 
+  const marketAsOfLabel = formatAsOf(marketAsOf)
+
   const value: AppContextValue = {
     state,
     prices,
+    quotes,
     factors,
     equity,
     loadingMarket,
     aiBusy,
+    marketSimulated,
+    marketAsOf,
+    marketAsOfLabel,
     refreshMarket,
     completeOnboarding,
     makeDeposit,
