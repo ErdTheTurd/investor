@@ -1,6 +1,6 @@
 # Dunn Investing
 
-Finhabits-style automated investing with a real AI co-pilot that can trade within a daily allowance.
+Educational paper-trading demo with an AI co-pilot that can trade within a daily allowance.
 
 ## Features
 
@@ -8,7 +8,7 @@ Finhabits-style automated investing with a real AI co-pilot that can trade withi
 - **Dunn AI** — live LLMs with no developer API key (Puter → Pollinations → on-device WebLLM)
 - Multi-factor market matrix fed into every AI call (momentum, volatility, RS, volume, drawdown, liquidity, sentiment proxy, regime fit)
 - **Auto-Invest** with a hard daily dollar allowance (blocked when market data is simulated)
-- Habit-loop UX (streaks, one-tap deposits, variable AI insights)
+- Streaks, one-tap deposits, and AI insights inside a paper account
 
 ## Market data (Yahoo → static JSON)
 

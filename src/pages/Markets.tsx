@@ -21,7 +21,7 @@ export function Markets() {
     <div className="page">
       <h1 className="page-title">Markets</h1>
       <p className="page-sub">
-        Scrub the chart like a pro terminal — stocks and bonds, clear timeframes
+        Stock and bond prices by timeframe
         {marketSimulated
           ? '. Marks are simulated until Yahoo snapshots load.'
           : `, Yahoo marks as of ${marketAsOfLabel}.`}
@@ -59,17 +59,14 @@ export function Markets() {
         />
       </section>
 
-      <div className="dash-grid" style={{ marginTop: '1rem' }}>
+      <div className="dash-grid mt-4">
         <section className="panel balance-block">
-          <h2 style={{ fontSize: '1.15rem', marginBottom: '0.75rem' }}>
-            {sleeve === 'stocks' ? 'Equity sleeve' : 'Bond sleeve'}
-          </h2>
+          <h2 className="panel-title">{sleeve === 'stocks' ? 'Equities' : 'Bonds'}</h2>
           <div className="list market-list">
             {list.map((u) => {
               const px = prices[u.symbol]
               const f = factors.find((x) => x.symbol === u.symbol)
               const active = selected === u.symbol
-              const dayPx = f ? f.momentum1m / 21 : 0 // rough daily proxy from 1m — prefer showing 1m clearly
               return (
                 <button
                   type="button"
@@ -85,7 +82,7 @@ export function Markets() {
                   <div className="market-row-px">
                     <div>{px != null ? formatMoney(px) : '—'}</div>
                     <div className={(f?.momentum1m ?? 0) >= 0 ? 'gain' : 'loss'}>
-                      {f ? formatPct(f.momentum1m) : dayPx ? formatPct(dayPx) : ''}
+                      {f ? formatPct(f.momentum1m) : ''}
                       {f ? <span className="muted"> 1m</span> : null}
                     </div>
                     {quotes[u.symbol]?.simulated ? (
@@ -118,8 +115,8 @@ export function Markets() {
       </div>
 
       <p className="footer-note">
-        Drag or tap across a chart to scrub exact prices. Returns are period-based; bond charts use champagne accents so
-        fixed income never fights equity green/red.
+        Drag or tap a chart to see the price on a specific date. Bond charts use a tan line so they are not
+        mistaken for equity gains or losses.
       </p>
     </div>
   )

@@ -27,7 +27,7 @@ export function Invest() {
     <div className="page">
       <h1 className="page-title">Invest</h1>
       <p className="page-sub">
-        Read the chart, then trade. Diversified ETF universe with Yahoo factor snapshots — or hand the wheel to Dunn AI.
+        Buy or sell ETFs in the paper portfolio. Charts and factor snapshots use Yahoo data when it is available.
       </p>
 
       <section className="panel balance-block" style={{ marginBottom: '1rem' }}>
@@ -41,7 +41,7 @@ export function Invest() {
 
       <div className="dash-grid">
         <section className="panel balance-block">
-          <h2 style={{ fontSize: '1.2rem', marginBottom: '0.75rem' }}>Your positions</h2>
+          <h2 className="panel-title">Your positions</h2>
           <div className="list">
             {state.holdings.length === 0 && <p className="muted">No holdings yet.</p>}
             {state.holdings.map((h) => {
@@ -110,8 +110,8 @@ export function Invest() {
 
         <section className="panel balance-block stack">
           <div>
-            <h2 style={{ fontSize: '1.2rem', marginBottom: '0.35rem' }}>Target mix · {state.profile.risk}</h2>
-            <p className="muted">Finhabits-style diversified sleeves, tuned to your onboarding.</p>
+            <h2 className="panel-title tight">Target mix · {state.profile.risk}</h2>
+            <p className="muted">Target allocation from the risk level you chose.</p>
           </div>
           <div className="list">
             {Object.entries(target).map(([cls, pct]) => {
@@ -129,7 +129,9 @@ export function Invest() {
           </div>
 
           <div>
-            <h3 style={{ fontSize: '1.05rem', margin: '0.5rem 0' }}>Factor radar</h3>
+            <h3 className="panel-title" style={{ fontSize: '1.05rem', margin: '0.5rem 0' }}>
+              Recent factors
+            </h3>
             <div className="factor-grid">
               {factors.slice(0, 6).map((f) => (
                 <button

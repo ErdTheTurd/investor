@@ -20,8 +20,7 @@ export function AppLayout() {
       <header className="nav">
         <div className="container nav-inner">
           <NavLink to="/app" className="brand">
-            Dunn <span>Investing</span>
-            <em>?</em>
+            Dunn <span>Investing<em>?</em></span>
           </NavLink>
           <nav className="nav-links" aria-label="Primary">
             {links.map((l) => (
@@ -52,6 +51,11 @@ export function AppLayout() {
       <main className="container">
         <Outlet />
       </main>
+      <footer className="app-footer">
+        <p className="footer-note container">
+          Educational paper-trading demo. Not a registered broker-dealer or investment adviser.
+        </p>
+      </footer>
       <nav className="bottom-nav" aria-label="Mobile">
         {links.map((l) => (
           <NavLink key={l.to} to={l.to} end={l.end} className={({ isActive }) => (isActive ? 'active' : '')}>

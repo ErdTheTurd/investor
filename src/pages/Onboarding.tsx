@@ -35,16 +35,17 @@ export function Onboarding() {
     <div className="onboard container">
       <div className="panel onboard-card">
         <div className="brand" style={{ marginBottom: '0.75rem' }}>
-          Dunn <span>Investing</span>
-          <em>?</em>
+          Dunn <span>Investing<em>?</em></span>
         </div>
-        <h1>{step === 0 ? 'Who are we building for?' : step === 1 ? 'How should AI take risk?' : 'Fund the habit'}</h1>
+        <h1>
+          {step === 0 ? 'Name and time horizon' : step === 1 ? 'Risk level' : 'Starting deposits'}
+        </h1>
         <p className="muted">
           {step === 0
-            ? 'A little investment from you now makes every return visit more personal.'
+            ? 'Shown on the dashboard. This is a paper account.'
             : step === 1
-              ? 'This becomes both your portfolio mix and Dunn AI’s risk bias.'
-              : 'Start small. Variable rewards come from watching the balance move.'}
+              ? 'Sets your target mix and Dunn AI’s default risk bias.'
+              : 'Paper cash to start with, plus a monthly deposit target.'}
         </p>
         <div className="steps" aria-hidden>
           {[0, 1, 2].map((i) => (
@@ -81,19 +82,14 @@ export function Onboarding() {
               <button
                 key={r.id}
                 type="button"
-                className="btn btn-ghost"
-                style={{
-                  textAlign: 'left',
-                  borderColor: risk === r.id ? 'rgba(31,169,122,0.7)' : undefined,
-                  background: risk === r.id ? 'rgba(31,169,122,0.12)' : undefined,
-                }}
+                className={`btn btn-ghost choice ${risk === r.id ? 'on' : ''}`}
                 onClick={() => setRisk(r.id)}
               >
                 <strong>{r.title}</strong>
                 <div className="muted">{r.blurb}</div>
               </button>
             ))}
-            <div style={{ display: 'flex', gap: '0.6rem' }}>
+            <div className="nav-actions">
               <button className="btn btn-ghost" type="button" onClick={() => setStep(0)}>
                 Back
               </button>
@@ -126,12 +122,12 @@ export function Onboarding() {
                 onChange={(e) => setInitialDeposit(Number(e.target.value) || 0)}
               />
             </div>
-            <div style={{ display: 'flex', gap: '0.6rem' }}>
+            <div className="nav-actions">
               <button className="btn btn-ghost" type="button" onClick={() => setStep(1)}>
                 Back
               </button>
               <button className="btn btn-primary" type="button" onClick={finish}>
-                Enter Dunn Investing
+                Start
               </button>
             </div>
           </div>
