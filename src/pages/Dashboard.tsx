@@ -22,8 +22,8 @@ function EquityArea({ points }: { points: number[] }) {
     <svg className="spark" viewBox="0 0 300 120" role="img" aria-label="Equity history">
       <defs>
         <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="rgba(31,169,122,0.35)" />
-          <stop offset="100%" stopColor="rgba(31,169,122,0)" />
+          <stop offset="0%" stopColor="rgba(31,154,114,0.28)" />
+          <stop offset="100%" stopColor="rgba(31,154,114,0)" />
         </linearGradient>
       </defs>
       <path className="area" d={area} />
@@ -50,7 +50,7 @@ export function Dashboard() {
 
   const onDeposit = () => {
     makeDeposit(depositAmt)
-    setToast(`Deposited ${formatMoney(depositAmt)} — habit locked in.`)
+    setToast(`Deposited ${formatMoney(depositAmt)}`)
     window.setTimeout(() => setToast(null), 2800)
   }
 
@@ -59,8 +59,8 @@ export function Dashboard() {
       <p className="muted" style={{ marginBottom: '0.35rem' }}>
         Welcome back{state.profile.name ? `, ${state.profile.name}` : ''}
       </p>
-      <h1 className="page-title">Your money, moving.</h1>
-      <p className="page-sub">One tap to deposit. Dunn AI handles the hard questions — within your allowance.</p>
+      <h1 className="page-title">Portfolio</h1>
+      <p className="page-sub">Cash, holdings, and recent activity for this paper account.</p>
 
       <div className="dash-grid">
         <section className="panel balance-block">
@@ -93,11 +93,11 @@ export function Dashboard() {
             <button className="btn btn-ghost" type="button" onClick={() => void refreshMarket()} style={{ alignSelf: 'end' }}>
               Refresh prices
             </button>
-            <Link className="btn btn-champagne" to="/app/markets" style={{ alignSelf: 'end' }}>
+            <Link className="btn btn-ghost" to="/app/markets" style={{ alignSelf: 'end' }}>
               View markets
             </Link>
           </div>
-          <p className="muted" style={{ marginTop: '1rem', fontSize: '0.85rem' }}>
+          <p className="muted hint">
             Cash available: {formatMoney(state.cash)} · Auto-deposit goal {formatMoney(state.profile.monthlyDeposit)}
             /mo
           </p>
@@ -105,11 +105,13 @@ export function Dashboard() {
 
         <section className="panel balance-block stack">
           <div>
-            <h2 style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>Holdings</h2>
-            <p className="muted">Yahoo marks with mini trend lines.</p>
+            <h2 className="panel-title tight">Holdings</h2>
+            <p className="muted">Current prices and recent trend.</p>
           </div>
           <div className="list">
-            {holdingsPreview.length === 0 && <p className="muted">No positions yet — deposit, then let AI invest.</p>}
+            {holdingsPreview.length === 0 && (
+              <p className="muted">No positions yet. Deposit cash, then buy or use Auto-Invest.</p>
+            )}
             {holdingsPreview.map((h) => {
               const px = prices[h.symbol] ?? h.avgCost
               const pnl = ((px - h.avgCost) / h.avgCost) * 100
@@ -134,11 +136,11 @@ export function Dashboard() {
         </section>
       </div>
 
-      <section className="panel balance-block" style={{ marginTop: '1rem' }}>
+      <section className="panel balance-block mt-4">
         <div className="price-chart-head" style={{ marginBottom: '0.5rem' }}>
           <div>
-            <h2 style={{ fontSize: '1.2rem' }}>Market pulse · SPY</h2>
-            <p className="muted">Scrub the line to see exact prices — same interaction pattern as the Markets desk.</p>
+            <h2 className="panel-title tight">S&P 500 (SPY)</h2>
+            <p className="muted">Drag the chart to see the price at a point in time.</p>
           </div>
           <Link to="/app/markets" className="btn btn-ghost">
             Stocks & bonds
@@ -147,12 +149,12 @@ export function Dashboard() {
         <PriceChart symbol="SPY" name="S&P 500" showHeader={false} height={220} defaultRange="3mo" />
       </section>
 
-      <section className="panel balance-block" style={{ marginTop: '1rem' }}>
+      <section className="panel balance-block mt-4">
         <CompareChart height={240} />
       </section>
 
-      <section className="panel balance-block" style={{ marginTop: '1rem' }}>
-        <h2 style={{ fontSize: '1.2rem', marginBottom: '0.75rem' }}>Recent activity</h2>
+      <section className="panel balance-block mt-4">
+        <h2 className="panel-title">Recent activity</h2>
         <div className="list">
           {state.transactions.slice(0, 6).map((t) => (
             <div className="list-row" key={t.id}>
@@ -163,7 +165,7 @@ export function Dashboard() {
               <div>{formatMoney(t.amount)}</div>
             </div>
           ))}
-          {state.transactions.length === 0 && <p className="muted">Your ledger is empty — make the first deposit.</p>}
+          {state.transactions.length === 0 && <p className="muted">No transactions yet.</p>}
         </div>
       </section>
 

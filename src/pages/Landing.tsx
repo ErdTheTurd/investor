@@ -6,38 +6,32 @@ export function Landing() {
       <header className="nav">
         <div className="container nav-inner">
           <div className="brand">
-            Dunn <span>Investing</span>
-            <em>?</em>
+            Dunn <span>Investing<em>?</em></span>
           </div>
-          <div style={{ display: 'flex', gap: '0.6rem' }}>
+          <div className="nav-actions">
             <Link className="btn btn-ghost" to="/onboarding">
               Log in
             </Link>
             <Link className="btn btn-primary" to="/onboarding">
-              Start investing
+              Get started
             </Link>
           </div>
         </div>
       </header>
 
       <section className="hero">
-        <div className="hero-media" aria-hidden />
         <div className="container hero-content">
-          <div className="hero-brand">
-            Dunn <span>Investing</span>
-            <em>?</em>
-          </div>
-          <h1>Real AI that can invest with the allowance you set.</h1>
+          <h1>Paper trading with an AI co-pilot and a daily spending cap.</h1>
           <p className="lede">
-            Automated portfolios like the apps you already trust — plus a live language model that reads dozens of market
-            factors and can trade for you.
+            Build a diversified paper portfolio of stocks, bonds, REITs, and gold. Dunn AI can propose or
+            place simulated trades up to the allowance you set.
           </p>
           <div className="hero-cta">
             <Link className="btn btn-primary" to="/onboarding">
-              Open your account
+              Open a paper account
             </Link>
             <a className="btn btn-ghost" href="#how">
-              See how it works
+              How it works
             </a>
           </div>
         </div>
@@ -45,33 +39,32 @@ export function Landing() {
 
       <section className="section container" id="how">
         <div className="section-head">
-          <h2>Investing made a daily habit</h2>
+          <h2>How it works</h2>
           <p>
-            Cue, action, reward — designed so checking in feels natural. Deposit once, watch the AI work within your
-            rules, come back for the next insight.
+            Deposit paper cash, choose a risk mix, and optionally let Dunn AI trade within a daily dollar
+            limit.
           </p>
         </div>
         <div className="feature-row">
           <article>
-            <h3>Diversified by default</h3>
+            <h3>Diversified portfolios</h3>
             <p>
-              Goal-based portfolios across US stocks, international equities, bonds, REITs, and gold — rebalanced toward
-              your risk profile.
+              Target mixes across US stocks, international equities, bonds, REITs, and gold, based on the
+              risk level you choose.
             </p>
           </article>
           <article>
-            <h3>Dunn AI is a real model</h3>
+            <h3>Dunn AI</h3>
             <p>
-              Not a hard-coded scoring script posing as intelligence. We call a live LLM (via Puter, no developer API
-              key) with a multi-factor matrix: momentum, volatility, relative strength, volume pressure, drawdowns,
-              liquidity, and regime fit.
+              A language model (Puter, then Pollinations, then an on-device model) reads market factors such
+              as momentum, volatility, and drawdowns before it proposes a trade.
             </p>
           </article>
           <article>
             <h3>Auto-Invest with an allowance</h3>
             <p>
-              Flip Auto-Invest on, set a daily dollar ceiling, and Dunn AI can place paper trades on its own — or ask
-              you to approve when the size is larger.
+              Turn Auto-Invest on, set a daily dollar cap, and Dunn AI can place paper trades on its own, or
+              ask you to approve larger ones.
             </p>
           </article>
         </div>
@@ -79,13 +72,11 @@ export function Landing() {
 
       <section className="section container">
         <div className="section-head">
-          <h2>One question. Better money habits.</h2>
-          <p>
-            Dunn Investing? Because building wealth starts with asking better questions — and giving AI clear limits.
-          </p>
+          <h2>A demo with limits you control</h2>
+          <p>You set the rules. Dunn AI stays inside them. Nothing here is a live brokerage account.</p>
         </div>
-        <Link className="btn btn-champagne" to="/onboarding">
-          Begin onboarding
+        <Link className="btn btn-primary" to="/onboarding">
+          Get started
         </Link>
         <p className="footer-note">
           Educational paper-trading demo. Not a registered broker-dealer or investment adviser. Past performance does not

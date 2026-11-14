@@ -335,7 +335,7 @@ interface CompareProps {
   height?: number
 }
 
-/** Stocks vs bonds — both rebased to 100 for an apples-to-apples read. */
+/** Stocks vs bonds, both rebased to 100 so returns are comparable. */
 export function CompareChart({
   stockSymbol = 'SPY',
   bondSymbol = 'BND',
@@ -438,7 +438,7 @@ export function CompareChart({
         <div>
           <div className="price-chart-sym">Stocks vs bonds</div>
           <p className="muted" style={{ marginTop: '0.25rem', maxWidth: '36ch' }}>
-            Both start at 100 so you can see which sleeve ran hotter over the period — classic portfolio UX.
+            Both series are rebased to 100 at the start of the period so you can compare relative performance.
           </p>
           {layout && (
             <div className="compare-legend">

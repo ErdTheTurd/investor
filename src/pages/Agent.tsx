@@ -59,8 +59,8 @@ export function Agent() {
     <div className="page">
       <h1 className="page-title">Dunn AI</h1>
       <p className="page-sub">
-        A real LLM reading {factors.length || '…'} factor rows — not a toy rule engine. Set an allowance and it can
-        invest itself
+        Dunn AI reads {factors.length || '…'} market-factor rows and can place paper trades up to your daily
+        allowance
         {marketSimulated
           ? '. Auto-Invest is blocked while prices are simulated.'
           : ` using Yahoo marks as of ${marketAsOfLabel}.`}
@@ -115,7 +115,7 @@ export function Agent() {
               <div className="bubble assistant muted">
                 {localProgress
                   ? `Loading on-device model… ${localProgress}`
-                  : 'Dunn AI is thinking across the factor matrix…'}
+                  : 'Dunn AI is working…'}
               </div>
             )}
           </div>
@@ -139,7 +139,7 @@ export function Agent() {
               <div className="muted">
                 {marketSimulated
                   ? 'Disabled — simulated market data cannot drive AI trades'
-                  : 'AI places trades under your daily allowance'}
+                  : 'Places paper trades under your daily allowance'}
               </div>
             </div>
             <button
@@ -204,7 +204,7 @@ export function Agent() {
           {providerLabel && <div className="chip">Model · {providerLabel}</div>}
 
           <button
-            className="btn btn-champagne"
+            className="btn btn-primary"
             type="button"
             disabled={!state.agent.enabled || aiBusy || remaining <= 0 || marketSimulated}
             onClick={() => void runAiInvest()}
@@ -213,13 +213,15 @@ export function Agent() {
           </button>
 
           <p className="muted" style={{ fontSize: '0.85rem', lineHeight: 1.5 }}>
-            No developer API key required. Dunn AI tries Puter.js (real cloud models, you cover usage), then a keyless
-            Pollinations endpoint, then an on-device Qwen 2.5 model in your browser. Every call includes the factor
-            matrix from Yahoo snapshots (never labeled live when data is simulated).
+            No developer API key is required. Dunn AI tries Puter.js (cloud models, you cover usage), then a
+            keyless Pollinations endpoint, then an on-device Qwen 2.5 model in the browser. Each call includes
+            the factor matrix from Yahoo snapshots. Data is never labeled live when it is simulated.
           </p>
 
           <div>
-            <h3 style={{ fontSize: '1.05rem', marginBottom: '0.5rem' }}>Factors in the prompt</h3>
+            <h3 className="panel-title" style={{ fontSize: '1.05rem' }}>
+              Factors in the prompt
+            </h3>
             <div className="factor-grid">
               {[
                 'momentum 1m/3m',

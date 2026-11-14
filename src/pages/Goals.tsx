@@ -18,13 +18,13 @@ export function Goals() {
   return (
     <div className="page">
       <h1 className="page-title">Goals</h1>
-      <p className="page-sub">Name the future you’re funding — each goal is an investment that pulls you back tomorrow.</p>
+      <p className="page-sub">Track a savings target against your paper portfolio.</p>
 
       <div className="dash-grid">
         <section className="panel balance-block">
-          <h2 style={{ fontSize: '1.2rem', marginBottom: '0.75rem' }}>Active goals</h2>
+          <h2 className="panel-title">Active goals</h2>
           <div className="list">
-            {state.goals.length === 0 && <p className="muted">No goals yet. Add one to lock in the habit loop.</p>}
+            {state.goals.length === 0 && <p className="muted">No goals yet.</p>}
             {state.goals.map((g) => {
               const progress = Math.min(100, (equity / Math.max(g.targetAmount, 1)) * 100)
               return (
@@ -38,23 +38,8 @@ export function Goals() {
                     </div>
                     <div>{formatMoney(g.targetAmount)}</div>
                   </div>
-                  <div
-                    style={{
-                      marginTop: '0.65rem',
-                      height: 8,
-                      borderRadius: 999,
-                      background: 'rgba(232,242,239,0.08)',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: `${progress}%`,
-                        height: '100%',
-                        background: 'linear-gradient(90deg, var(--emerald), var(--champagne))',
-                        transition: 'width 0.6s var(--ease)',
-                      }}
-                    />
+                  <div className="progress">
+                    <div className="progress-bar" style={{ width: `${progress}%` }} />
                   </div>
                   <div className="muted" style={{ fontSize: '0.8rem', marginTop: '0.35rem' }}>
                     {progress.toFixed(0)}% of target vs total equity
@@ -66,7 +51,7 @@ export function Goals() {
         </section>
 
         <section className="panel balance-block">
-          <h2 style={{ fontSize: '1.2rem', marginBottom: '0.75rem' }}>Add a goal</h2>
+          <h2 className="panel-title">Add a goal</h2>
           <form className="stack" onSubmit={onSubmit}>
             <div className="field">
               <label htmlFor="gname">Name</label>

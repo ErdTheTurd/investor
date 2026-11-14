@@ -1,19 +1,19 @@
 const lessons = [
   {
-    title: 'Cue → Action → Reward',
-    body: 'Open Dunn Investing when you check your phone in the morning. Deposit or ask the AI one question. Feel the streak tick up and the balance move — that closes the loop.',
+    title: 'A simple check-in',
+    body: 'Open the app, make a deposit or ask Dunn AI a question, and your visit streak updates. The portfolio does not depend on daily check-ins.',
   },
   {
-    title: 'Allowance is the safety rail',
-    body: 'Auto-Invest is powerful because it is bounded. A daily dollar ceiling lets a real model act without giving it the whole account.',
+    title: 'The daily allowance is the limit',
+    body: 'Auto-Invest can place paper trades only up to the daily dollar cap you set. It cannot spend the whole account in one go.',
   },
   {
-    title: 'Factors beat vibes',
-    body: 'Momentum, volatility, relative strength, volume pressure, drawdown, and regime fit are fed into the LLM each turn so answers are grounded in data — not a canned script.',
+    title: 'What the model sees',
+    body: 'Each Dunn AI turn includes momentum, volatility, relative strength, volume, drawdown, and other factors from the market snapshots, not a fixed script of answers.',
   },
   {
-    title: 'Diversify like Finhabits',
-    body: 'Sleeves across US equity, international, bonds, REITs, and commodities reduce single-name blowups. Use AI for timing and sizing inside that map.',
+    title: 'Diversification',
+    body: 'The default mix spreads paper cash across US stocks, international stocks, bonds, REITs, and commodities. Dunn AI sizes trades inside that map.',
   },
 ]
 
@@ -21,7 +21,7 @@ export function Learn() {
   return (
     <div className="page">
       <h1 className="page-title">Learn</h1>
-      <p className="page-sub">Five-minute money journeys — psychology and portfolio literacy in one place.</p>
+      <p className="page-sub">Short notes on how this paper-trading demo works.</p>
       <div className="feature-row panel balance-block">
         {lessons.map((l) => (
           <article key={l.title}>
