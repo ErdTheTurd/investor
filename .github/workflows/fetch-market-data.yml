@@ -1,0 +1,78 @@
+# Fetches Yahoo Finance bars/quotes into static JSON for GitHub Pages.
+# No secrets — Yahoo chart API is keyless.
+#
+# Publishing: GITHUB_TOKEN pushes do NOT trigger branch-based Pages builds, so
+# this workflow deploys via actions/deploy-pages after refreshing JSON.
+# One-time setting (ERD): Settings → Pages → Source → GitHub Actions.
+# Commits to main keep market-data in git history; the deploy job is what
+# makes the live site pick up new snapshots.
+
+name: Fetch market data
+
+on:
+  schedule:
+    # US equity session-ish (Eastern): pre-open, mid-morning, afternoon, after close.
+    # Cron is UTC: 13:30, 15:30, 18:30, 21:15 ≈ 8:30 / 10:30 / 13:30 / 16:15 ET (EST+5).
+    # During EDT these land one hour earlier local; still covers the trading day.
+    - cron: '30 13 * * 1-5'
+    - cron: '30 15 * * 1-5'
+    - cron: '30 18 * * 1-5'
+    - cron: '15 21 * * 1-5'
+  workflow_dispatch:
+
+concurrency:
+  group: fetch-market-data
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Fetch Yahoo → static JSON
+        run: node scripts/fetch-market-data.mjs
+
+      - name: Commit if data changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add market-data public/market-data
+          if git diff --staged --quiet; then
+            echo "No market-data changes to commit."
+          else
+            git commit -m "chore: refresh Yahoo market-data snapshot"
+            git push
+          fi
+
+      - name: Assemble Pages bundle
+        run: |
+          mkdir -p _site
+          cp index.html 404.html favicon.svg .nojekyll _site/
+          cp -r assets _site/assets
+          cp -r market-data _site/market-data
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

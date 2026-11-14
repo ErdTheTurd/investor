@@ -1,0 +1,112 @@
+{
+  "asOf": "2026-11-12T19:20:34.419Z",
+  "source": "yahoo",
+  "range": "2y",
+  "interval": "1d",
+  "symbols": [
+    "SPY",
+    "QQQ",
+    "VTI",
+    "VXUS",
+    "EFA",
+    "BND",
+    "TLT",
+    "VNQ",
+    "GLD",
+    "AAPL",
+    "MSFT",
+    "NVDA"
+  ],
+  "results": [
+    {
+      "symbol": "SPY",
+      "status": "ok",
+      "asOf": "2026-11-12T19:20:27.000Z",
+      "price": 759.45,
+      "bars": 502
+    },
+    {
+      "symbol": "QQQ",
+      "status": "ok",
+      "asOf": "2026-11-12T19:20:27.000Z",
+      "price": 689.63,
+      "bars": 502
+    },
+    {
+      "symbol": "VTI",
+      "status": "ok",
+      "asOf": "2026-11-12T19:20:27.000Z",
+      "price": 373.81,
+      "bars": 502
+    },
+    {
+      "symbol": "VXUS",
+      "status": "ok",
+      "asOf": "2026-11-12T19:20:17.000Z",
+      "price": 82.8,
+      "bars": 502
+    },
+    {
+      "symbol": "EFA",
+      "status": "ok",
+      "asOf": "2026-11-12T19:20:27.000Z",
+      "price": 104.175,
+      "bars": 502
+    },
+    {
+      "symbol": "BND",
+      "status": "ok",
+      "asOf": "2026-11-12T19:20:27.000Z",
+      "price": 70.695,
+      "bars": 502
+    },
+    {
+      "symbol": "TLT",
+      "status": "ok",
+      "asOf": "2026-11-12T19:20:20.000Z",
+      "price": 79.86,
+      "bars": 502
+    },
+    {
+      "symbol": "VNQ",
+      "status": "ok",
+      "asOf": "2026-11-12T19:20:29.000Z",
+      "price": 96.88,
+      "bars": 502
+    },
+    {
+      "symbol": "GLD",
+      "status": "ok",
+      "asOf": "2026-11-12T19:20:27.000Z",
+      "price": 355.56,
+      "bars": 502
+    },
+    {
+      "symbol": "AAPL",
+      "status": "ok",
+      "asOf": "2026-11-12T19:20:31.000Z",
+      "price": 355.905,
+      "bars": 502
+    },
+    {
+      "symbol": "MSFT",
+      "status": "ok",
+      "asOf": "2026-11-12T19:20:31.000Z",
+      "price": 524.66,
+      "bars": 502
+    },
+    {
+      "symbol": "NVDA",
+      "status": "ok",
+      "asOf": "2026-11-12T19:20:32.000Z",
+      "price": 164.74,
+      "bars": 502
+    }
+  ],
+  "summary": {
+    "ok": 12,
+    "kept": 0,
+    "failed": 0,
+    "total": 12
+  }
+}

@@ -11,7 +11,7 @@ const links = [
 ]
 
 export function AppLayout() {
-  const { state } = useApp()
+  const { state, marketSimulated, marketAsOfLabel, loadingMarket } = useApp()
   const location = useLocation()
   const showBottom = location.pathname.startsWith('/app')
 
@@ -30,9 +30,22 @@ export function AppLayout() {
               </NavLink>
             ))}
           </nav>
-          <div className="chip">
-            <span className="pulse-dot" aria-hidden />
-            {state.profile.streakDays} day streak
+          <div className="nav-meta">
+            <div
+              className={`chip ${marketSimulated ? 'chip-warn' : 'chip-ok'}`}
+              title={marketSimulated ? 'Using simulated fallback prices' : `Quotes as of ${marketAsOfLabel}`}
+            >
+              <span className="pulse-dot" aria-hidden />
+              {loadingMarket
+                ? 'Refreshing…'
+                : marketSimulated
+                  ? 'Simulated data'
+                  : `As of ${marketAsOfLabel}`}
+            </div>
+            <div className="chip">
+              <span className="pulse-dot" aria-hidden />
+              {state.profile.streakDays} day streak
+            </div>
           </div>
         </div>
       </header>

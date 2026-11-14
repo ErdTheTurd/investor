@@ -952,3 +952,42 @@ p {
   line-height: 1.45;
   padding: 2rem 0 3rem;
 }
+
+.nav-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.chip-warn {
+  background: rgba(239, 107, 90, 0.16);
+  color: #f0a39a;
+}
+
+.chip-ok {
+  background: rgba(46, 207, 143, 0.12);
+  color: var(--gain);
+}
+
+.sim-tag {
+  color: #f0a39a;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.asof-mini {
+  font-size: 0.7rem;
+  margin-top: 0.15rem;
+}
+
+.market-asof {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+}
+
+.switch:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

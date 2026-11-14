@@ -1,5 +1,5 @@
-import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
+import { defineConfig, type Plugin } from 'vitest/config'
 
 /** GitHub Pages serves this repo at https://erdtheturd.github.io/investor/ */
 const BASE = '/investor/'
@@ -128,6 +128,10 @@ function aiProxyPlugin(): Plugin {
 export default defineConfig({
   base: BASE,
   plugins: [react(), yahooProxyPlugin(), aiProxyPlugin()],
+  test: {
+    environment: 'node',
+    include: ['src/**/*.test.ts'],
+  },
   build: {
     modulePreload: {
       resolveDependencies: (_filename, deps) =>

@@ -40,7 +40,7 @@ export function defaultState(): AppState {
         id: 'welcome',
         role: 'assistant',
         content:
-          "I'm Dunn AI — a real language model wired into live market factors. Ask me anything about your portfolio, or turn on Auto-Invest and set an allowance so I can place trades for you.",
+          "I'm Dunn AI — a real language model wired into Yahoo market-factor snapshots. Ask me anything about your portfolio, or turn on Auto-Invest and set an allowance so I can place trades for you (blocked when prices are simulated).",
         createdAt: new Date().toISOString(),
       },
     ],
