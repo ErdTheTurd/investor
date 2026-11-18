@@ -1,15 +1,15 @@
 {
   "symbol": "EFA",
   "asOf": "2026-11-17T21:00:00.000Z",
-  "fetchedAt": "2026-11-17T23:06:15.715Z",
+  "fetchedAt": "2026-11-18T01:06:15.506Z",
   "source": "yahoo",
   "range": "2y",
   "interval": "1d",
   "quote": {
     "symbol": "EFA",
     "price": 101.35,
-    "previousClose": 102.63999938964844,
-    "changePercent": -1.2568193660555922,
+    "previousClose": 104.16999816894531,
+    "changePercent": -2.707111662200262,
     "high52": 108.89,
     "low52": 91.21,
     "volume": 14259938,
@@ -3516,13 +3516,6 @@
       "low": 102.5999984741211,
       "volume": 13280100,
       "date": "2026-11-16"
-    },
-    {
-      "close": 101.3499984741211,
-      "high": 102,
-      "low": 101,
-      "volume": 14259938,
-      "date": "2026-11-17"
     }
   ]
 }

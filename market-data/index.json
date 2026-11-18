@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-11-17T23:06:19.116Z",
+  "asOf": "2026-11-18T01:06:18.950Z",
   "source": "yahoo",
   "range": "2y",
   "interval": "1d",
@@ -23,84 +23,84 @@
       "status": "ok",
       "asOf": "2026-11-17T21:00:00.000Z",
       "price": 732.44,
-      "bars": 501
+      "bars": 500
     },
     {
       "symbol": "QQQ",
       "status": "ok",
       "asOf": "2026-11-17T21:00:00.000Z",
       "price": 656.95,
-      "bars": 501
+      "bars": 500
     },
     {
       "symbol": "VTI",
       "status": "ok",
       "asOf": "2026-11-17T21:00:00.000Z",
       "price": 360.19,
-      "bars": 501
+      "bars": 500
     },
     {
       "symbol": "VXUS",
       "status": "ok",
       "asOf": "2026-11-17T21:00:00.000Z",
       "price": 80.11,
-      "bars": 501
+      "bars": 500
     },
     {
       "symbol": "EFA",
       "status": "ok",
       "asOf": "2026-11-17T21:00:00.000Z",
       "price": 101.35,
-      "bars": 501
+      "bars": 500
     },
     {
       "symbol": "BND",
       "status": "ok",
       "asOf": "2026-11-17T21:00:01.000Z",
       "price": 70.71,
-      "bars": 501
+      "bars": 500
     },
     {
       "symbol": "TLT",
       "status": "ok",
       "asOf": "2026-11-17T21:00:01.000Z",
       "price": 79.55,
-      "bars": 501
+      "bars": 500
     },
     {
       "symbol": "VNQ",
       "status": "ok",
       "asOf": "2026-11-17T21:00:00.000Z",
       "price": 94.89,
-      "bars": 501
+      "bars": 500
     },
     {
       "symbol": "GLD",
       "status": "ok",
       "asOf": "2026-11-17T21:00:00.000Z",
       "price": 352.48,
-      "bars": 501
+      "bars": 500
     },
     {
       "symbol": "AAPL",
       "status": "ok",
       "asOf": "2026-11-17T21:00:01.000Z",
       "price": 351.91,
-      "bars": 501
+      "bars": 500
     },
     {
       "symbol": "MSFT",
       "status": "ok",
       "asOf": "2026-11-17T21:00:01.000Z",
       "price": 506.24,
-      "bars": 501
+      "bars": 500
     },
     {
       "symbol": "NVDA",
       "status": "ok",
       "asOf": "2026-11-17T21:00:00.000Z",
       "price": 155.46,
-      "bars": 501
+      "bars": 500
     }
   ],
   "summary": {
