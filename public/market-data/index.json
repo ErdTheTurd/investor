@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-11-20T21:25:59.776Z",
+  "asOf": "2026-11-20T22:19:37.528Z",
   "source": "yahoo",
   "range": "2y",
   "interval": "1d",
@@ -22,7 +22,7 @@
       "symbol": "SPY",
       "status": "ok",
       "asOf": "2026-11-20T21:00:04.000Z",
-      "price": 690.87,
+      "price": 689.81,
       "bars": 501
     },
     {
@@ -36,7 +36,7 @@
       "symbol": "VTI",
       "status": "ok",
       "asOf": "2026-11-20T21:00:02.000Z",
-      "price": 340.17,
+      "price": 340.02,
       "bars": 501
     },
     {
@@ -50,7 +50,7 @@
       "symbol": "EFA",
       "status": "ok",
       "asOf": "2026-11-20T21:00:03.000Z",
-      "price": 96.175,
+      "price": 96.14,
       "bars": 501
     },
     {
@@ -71,14 +71,14 @@
       "symbol": "VNQ",
       "status": "ok",
       "asOf": "2026-11-20T21:00:02.000Z",
-      "price": 92.615,
+      "price": 92.56,
       "bars": 501
     },
     {
       "symbol": "GLD",
       "status": "ok",
       "asOf": "2026-11-20T21:00:03.000Z",
-      "price": 323.03,
+      "price": 322.87,
       "bars": 501
     },
     {
