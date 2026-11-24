@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-11-24T05:18:23.277Z",
+  "asOf": "2026-11-24T23:11:48.937Z",
   "source": "yahoo",
   "range": "2y",
   "interval": "1d",
@@ -21,86 +21,86 @@
     {
       "symbol": "SPY",
       "status": "ok",
-      "asOf": "2026-11-23T21:00:00.000Z",
-      "price": 722.29,
-      "bars": 500
+      "asOf": "2026-11-24T21:00:00.000Z",
+      "price": 718.78,
+      "bars": 501
     },
     {
       "symbol": "QQQ",
       "status": "ok",
-      "asOf": "2026-11-23T21:00:01.000Z",
-      "price": 651.03,
-      "bars": 500
+      "asOf": "2026-11-24T21:00:00.000Z",
+      "price": 638.1,
+      "bars": 501
     },
     {
       "symbol": "VTI",
       "status": "ok",
-      "asOf": "2026-11-23T21:00:00.000Z",
-      "price": 355.27,
-      "bars": 500
+      "asOf": "2026-11-24T21:00:00.000Z",
+      "price": 353.84,
+      "bars": 501
     },
     {
       "symbol": "VXUS",
       "status": "ok",
-      "asOf": "2026-11-23T21:00:00.000Z",
-      "price": 78.25,
-      "bars": 500
+      "asOf": "2026-11-24T21:00:01.000Z",
+      "price": 77.94,
+      "bars": 501
     },
     {
       "symbol": "EFA",
       "status": "ok",
-      "asOf": "2026-11-23T21:00:00.000Z",
-      "price": 98.76,
-      "bars": 500
+      "asOf": "2026-11-24T21:00:00.000Z",
+      "price": 98.88,
+      "bars": 501
     },
     {
       "symbol": "BND",
       "status": "ok",
-      "asOf": "2026-11-23T21:00:01.000Z",
+      "asOf": "2026-11-24T21:00:01.000Z",
       "price": 71.36,
-      "bars": 500
+      "bars": 501
     },
     {
       "symbol": "TLT",
       "status": "ok",
-      "asOf": "2026-11-23T21:00:00.000Z",
-      "price": 81.69,
-      "bars": 500
+      "asOf": "2026-11-24T21:00:00.000Z",
+      "price": 81.49,
+      "bars": 501
     },
     {
       "symbol": "VNQ",
       "status": "ok",
-      "asOf": "2026-11-23T21:00:00.000Z",
-      "price": 93.67,
-      "bars": 500
+      "asOf": "2026-11-24T21:00:00.000Z",
+      "price": 94.78,
+      "bars": 501
     },
     {
       "symbol": "GLD",
       "status": "ok",
-      "asOf": "2026-11-23T21:00:00.000Z",
-      "price": 333.02,
-      "bars": 500
+      "asOf": "2026-11-24T21:00:00.000Z",
+      "price": 325.45,
+      "bars": 501
     },
     {
       "symbol": "AAPL",
       "status": "ok",
-      "asOf": "2026-11-23T21:00:01.000Z",
-      "price": 349.08,
-      "bars": 500
+      "asOf": "2026-11-24T21:00:01.000Z",
+      "price": 354.07,
+      "bars": 501
     },
     {
       "symbol": "MSFT",
       "status": "ok",
-      "asOf": "2026-11-23T21:00:01.000Z",
-      "price": 492.5,
-      "bars": 500
+      "asOf": "2026-11-24T21:00:01.000Z",
+      "price": 496.13,
+      "bars": 501
     },
     {
       "symbol": "NVDA",
       "status": "ok",
-      "asOf": "2026-11-23T21:00:01.000Z",
-      "price": 165.05,
-      "bars": 500
+      "asOf": "2026-11-24T21:00:01.000Z",
+      "price": 155.38,
+      "bars": 501
     }
   ],
   "summary": {
